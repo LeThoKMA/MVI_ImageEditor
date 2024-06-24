@@ -1,7 +1,7 @@
-package com.example.imageEditor2.repository.authorize
+package com.example.mviimageeditor.repository.authorize
 
-import com.example.imageEditor2.model.request.AuthorizeRequest
-import com.example.imageEditor2.model.response.AuthorizeResponse
+import com.example.mviimageeditor.ui.theme.model.request.AuthorizeRequest
+import com.example.mviimageeditor.ui.theme.model.response.AuthorizeResponse
 import kotlinx.coroutines.flow.Flow
 
 interface AuthorizeRepository {

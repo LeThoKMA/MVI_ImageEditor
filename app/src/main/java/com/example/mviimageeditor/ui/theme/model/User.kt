@@ -1,5 +1,8 @@
-package com.example.imageEditor2.model
+package com.example.mviimageeditor.ui.theme.model
 
+import com.example.mviimageeditor.ui.theme.model.Links
+import com.example.mviimageeditor.ui.theme.model.ProfileImage
+import com.example.mviimageeditor.ui.theme.model.Social
 import com.google.gson.annotations.SerializedName
 
 data class User(

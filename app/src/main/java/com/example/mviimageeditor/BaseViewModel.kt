@@ -1,7 +1,6 @@
 package com.example.mviimageeditor
 
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,12 +11,12 @@ import java.net.HttpURLConnection
 import javax.net.ssl.HttpsURLConnection
 
 abstract class BaseViewModel() : ViewModel() {
-    private val _state = MutableStateFlow(State())
-    val state: StateFlow<State>
-        get() = _state
+    private val _baseSate = MutableStateFlow(State())
+    val baseState: StateFlow<State>
+        get() = _baseSate
 
     protected fun showLoading() {
-        _state.update {
+        _baseSate.update {
             it.copy(
                 isLoading = true
             )
@@ -25,7 +24,7 @@ abstract class BaseViewModel() : ViewModel() {
     }
 
     protected fun hideLoading() {
-        _state.update {
+        _baseSate.update {
             it.copy(
                 isLoading = false
             )
@@ -34,7 +33,7 @@ abstract class BaseViewModel() : ViewModel() {
 
     protected fun handleApiError(error: Throwable?) {
         if (error == null) {
-            _state.update {
+            _baseSate.update {
                 it.copy(errorMessage = "Có lỗi xảy ra")
             }
             return
@@ -45,32 +44,32 @@ abstract class BaseViewModel() : ViewModel() {
             when (error.code()) {
                 HttpURLConnection.HTTP_BAD_REQUEST ->
                     try {
-                        _state.update {
+                        _baseSate.update {
                             it.copy(responseMessage = error.message())
                         }
                     } catch (e: IOException) {
                         e.printStackTrace()
-                        _state.update {
+                        _baseSate.update {
                             it.copy(responseMessage = error.message())
                         }
                     }
 
-                HttpsURLConnection.HTTP_UNAUTHORIZED -> _state.update {
+                HttpsURLConnection.HTTP_UNAUTHORIZED -> _baseSate.update {
                     it.copy(errorMessage = "Bạn không có quyền truy cập")
                 }
 
                 HttpsURLConnection.HTTP_FORBIDDEN, HttpsURLConnection.HTTP_INTERNAL_ERROR, HttpsURLConnection.HTTP_NOT_FOUND ->
-                    _state.update {
+                    _baseSate.update {
                         it.copy(responseMessage = error.message())
                     }
 
-                else -> _state.update {
+                else -> _baseSate.update {
                     it.copy(responseMessage = error.message())
                 }
             }
         } else if (error is IOException) {
             Log.e("TAG", error.message.toString())
-            _state.update {
+            _baseSate.update {
                 it.copy(errorMessage = "Bạn không có quyền truy cập")
             }
         }

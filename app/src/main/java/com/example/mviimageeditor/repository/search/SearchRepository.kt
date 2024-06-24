@@ -1,7 +1,6 @@
 package com.example.imageEditor2.repository.search
 
-import com.example.imageEditor2.model.PhotoSearchModel
-import com.example.imageEditor2.model.QueryModel
+import com.example.mviimageeditor.ui.theme.model.PhotoSearchModel
 import kotlinx.coroutines.flow.Flow
 
 interface SearchRepository {

@@ -5,7 +5,9 @@ import android.preference.PreferenceManager
 import com.example.mviimageeditor.utils.ACCEPT
 import com.example.mviimageeditor.utils.ACCEPT_LANGUAGE
 import com.example.mviimageeditor.utils.AUTHORIZATION
+import com.example.mviimageeditor.utils.BASE_URL
 import com.example.mviimageeditor.utils.BASE_URL_API
+import com.example.mviimageeditor.utils.CLIENT_ID
 import com.example.mviimageeditor.utils.CONTENT_TYPE
 import com.example.mviimageeditor.utils.PREF_ACCESS_TOKEN
 import okhttp3.OkHttpClient
@@ -53,6 +55,36 @@ object NetworkModule {
 
         return Retrofit.Builder()
             .baseUrl(BASE_URL_API)
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(httpClient.build())
+            .build()
+    }
+
+    internal fun providePostApiAuthorize(retrofit: Retrofit): ApiAuthorize {
+        return retrofit.create(ApiAuthorize::class.java)
+    }
+
+    internal fun provideRetrofitAuthorizeInterface(): Retrofit {
+        val httpClient = OkHttpClient.Builder()
+        httpClient.connectTimeout(TIME_OUT, TimeUnit.SECONDS)
+        httpClient.readTimeout(TIME_OUT, TimeUnit.SECONDS)
+
+        httpClient.addInterceptor { chain ->
+            val request =
+                chain.request().newBuilder()
+                    .addHeader(CONTENT_TYPE, "application/json")
+                    .addHeader(ACCEPT, "*/*")
+                    .addHeader(ACCEPT_LANGUAGE, mLanguage)
+                    .build()
+            chain.proceed(request)
+        }
+
+        val logging = HttpLoggingInterceptor()
+        logging.level = HttpLoggingInterceptor.Level.BODY
+        httpClient.addInterceptor(logging) // <-- this is the important line!
+
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .client(httpClient.build())
             .build()

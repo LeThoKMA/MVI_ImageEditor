@@ -1,6 +1,6 @@
 package com.example.imageEditor2.repository.favorite
 
-import com.example.imageEditor2.model.PhotoModel
+import com.example.mviimageeditor.ui.theme.model.PhotoModel
 import kotlinx.coroutines.flow.Flow
 
 interface FavoriteRepository {

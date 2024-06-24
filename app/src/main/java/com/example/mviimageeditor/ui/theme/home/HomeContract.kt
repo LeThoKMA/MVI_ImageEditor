@@ -1,6 +1,6 @@
 package com.example.mviimageeditor.ui.theme.home
 
-import com.example.imageEditor2.model.CollectionModel
+import com.example.mviimageeditor.ui.theme.model.CollectionModel
 import com.example.mviimageeditor.ContractViewModel
 
 interface HomeContract :
@@ -12,6 +12,7 @@ interface HomeContract :
 
     sealed class Event {
         data class OnClickImage(val image: CollectionModel) : Event()
+        data class OnLoadMore(val page: Int) : Event()
     }
 
     sealed class Effect {

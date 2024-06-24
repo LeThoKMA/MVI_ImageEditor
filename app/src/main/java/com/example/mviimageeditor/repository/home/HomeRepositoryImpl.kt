@@ -1,7 +1,7 @@
 package com.example.imageEditor2.repository.home
 
 
-import com.example.imageEditor2.model.CollectionModel
+import com.example.mviimageeditor.ui.theme.model.CollectionModel
 import com.example.mviimageeditor.module.Api
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

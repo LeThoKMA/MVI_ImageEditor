@@ -1,6 +1,6 @@
 package com.example.imageEditor2.repository.search
 
-import com.example.imageEditor2.model.PhotoSearchModel
+import com.example.mviimageeditor.ui.theme.model.PhotoSearchModel
 import com.example.mviimageeditor.module.Api
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

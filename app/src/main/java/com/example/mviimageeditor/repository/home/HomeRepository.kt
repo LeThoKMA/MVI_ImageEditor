@@ -1,6 +1,6 @@
 package com.example.imageEditor2.repository.home
 
-import com.example.imageEditor2.model.CollectionModel
+import com.example.mviimageeditor.ui.theme.model.CollectionModel
 import kotlinx.coroutines.flow.Flow
 
 interface HomeRepository {

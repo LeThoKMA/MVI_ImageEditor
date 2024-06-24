@@ -1,4 +1,4 @@
-package com.example.imageEditor2.model
+package com.example.mviimageeditor.ui.theme.model
 
 import androidx.core.text.HtmlCompat
 import com.google.gson.annotations.SerializedName

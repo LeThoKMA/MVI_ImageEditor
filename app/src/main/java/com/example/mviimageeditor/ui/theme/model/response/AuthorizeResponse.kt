@@ -1,4 +1,4 @@
-package com.example.imageEditor2.model.response
+package com.example.mviimageeditor.ui.theme.model.response
 
 import com.google.gson.annotations.SerializedName
 

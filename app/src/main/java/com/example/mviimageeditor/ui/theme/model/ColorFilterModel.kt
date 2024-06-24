@@ -1,4 +1,4 @@
-package com.example.imageEditor2.model
+package com.example.mviimageeditor.ui.theme.model
 
 import android.graphics.ColorFilter
 

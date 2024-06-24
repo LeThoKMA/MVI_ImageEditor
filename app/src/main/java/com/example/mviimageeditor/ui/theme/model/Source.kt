@@ -1,5 +1,7 @@
-package com.example.imageEditor2.model
+package com.example.mviimageeditor.ui.theme.model
 
+import com.example.mviimageeditor.ui.theme.model.Ancestry
+import com.example.mviimageeditor.ui.theme.model.CoverPhoto
 import com.google.gson.annotations.SerializedName
 
 data class Source(
