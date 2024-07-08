@@ -15,5 +15,6 @@ class App : Application(), KoinComponent {
             androidContext(this@App)
             modules(myModule)
         }
+        GlideModule()
     }
 }

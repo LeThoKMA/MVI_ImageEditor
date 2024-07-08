@@ -1,6 +1,6 @@
-package com.example.imageEditor2.repository.search
+package com.example.mviimageeditor.repository.search
 
-import com.example.mviimageeditor.ui.theme.model.PhotoSearchModel
+import com.example.mviimageeditor.model.PhotoSearchModel
 import kotlinx.coroutines.flow.Flow
 
 interface SearchRepository {
@@ -8,10 +8,4 @@ interface SearchRepository {
         page: Int,
         query: String,
     ): Flow<PhotoSearchModel>
-
-//    suspend fun saveQueryToLocal(query: String): Flow<Unit>
-//
-//    suspend fun deleteQuery(queryModel: QueryModel): Flow<Unit>
-//
-//    suspend fun getAllQuery(): Flow<List<QueryModel>>
 }

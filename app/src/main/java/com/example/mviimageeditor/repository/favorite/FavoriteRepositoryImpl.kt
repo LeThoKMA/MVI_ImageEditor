@@ -1,7 +1,8 @@
-package com.example.imageEditor2.repository.favorite
+package com.example.mviimageeditor.repository.favorite
 
-import com.example.mviimageeditor.ui.theme.model.PhotoModel
+import com.example.mviimageeditor.model.PhotoModel
 import com.example.mviimageeditor.module.Api
+import com.example.mviimageeditor.repository.favorite.FavoriteRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow

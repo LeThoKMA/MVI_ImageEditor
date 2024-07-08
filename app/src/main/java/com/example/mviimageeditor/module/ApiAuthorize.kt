@@ -1,7 +1,7 @@
 package com.example.mviimageeditor.module
 
-import com.example.mviimageeditor.ui.theme.model.request.AuthorizeRequest
-import com.example.mviimageeditor.ui.theme.model.response.AuthorizeResponse
+import com.example.mviimageeditor.model.request.AuthorizeRequest
+import com.example.mviimageeditor.model.response.AuthorizeResponse
 import retrofit2.http.Body
 import retrofit2.http.POST
 

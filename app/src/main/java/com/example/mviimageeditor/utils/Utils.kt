@@ -1,3 +1,4 @@
+import androidx.compose.foundation.lazy.LazyListState
 import com.example.mviimageeditor.utils.ACCESS_KEY
 import com.example.mviimageeditor.utils.REDIRECT_URI
 import com.example.mviimageeditor.utils.RESPONSE_TYPE
@@ -194,3 +195,8 @@ fun String.toAuthorizationCode(): String {
 //fun Float.dpToPx(context: Context): Int {
 //    return (this * context.resources.displayMetrics.density).toInt()
 //}
+
+internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
+    val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
+    return lastVisibleItem?.index != 0 && lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
+}

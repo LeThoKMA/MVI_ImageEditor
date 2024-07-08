@@ -15,4 +15,10 @@ class MyPreference(context: Context) {
         mEditor?.putString(PREF_ACCESS_TOKEN, token)
         mEditor?.apply()
     }
+
+    fun deleteToken() {
+        mEditor = mPref?.edit()
+        mEditor?.remove(PREF_ACCESS_TOKEN)
+        mEditor?.apply()
+    }
 }

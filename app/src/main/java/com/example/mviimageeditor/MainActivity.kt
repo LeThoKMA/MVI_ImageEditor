@@ -1,10 +1,14 @@
 package com.example.mviimageeditor
 
-import android.graphics.drawable.Icon
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -12,29 +16,23 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.mviimageeditor.nav.BottomNavigationItem
+import com.example.mviimageeditor.nav.LocalAppNavigator
+import com.example.mviimageeditor.nav.NavigatorImpl
 import com.example.mviimageeditor.nav.Screen
+import com.example.mviimageeditor.nav.appNavGraph
 import com.example.mviimageeditor.nav.getBottomNavigationItems
-import com.example.mviimageeditor.ui.theme.Favorite.FavoriteScreen
 import com.example.mviimageeditor.ui.theme.MVIImageEditorTheme
-import com.example.mviimageeditor.ui.theme.create.CreateScreen
-import com.example.mviimageeditor.ui.theme.home.HomeScreen
-import com.example.mviimageeditor.ui.theme.search.SearchScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,7 +41,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MVIImageEditorTheme {
                 var navItemSelected by remember { mutableIntStateOf(0) }
-                val viewModel = viewModel<MainViewModel>()
+                var isShowingBottomBar by remember { mutableStateOf(true) }
                 val navController = rememberNavController()
                 val navSelectedCallBack = remember<(Int, BottomNavigationItem) -> Unit> {
                     { index, bottomNavItem ->
@@ -60,59 +58,49 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
-                        NavigationBar() {
-                            getBottomNavigationItems().forEachIndexed { index, bottomNavItem ->
-                                NavigationBarItem(
-                                    selected = index == navItemSelected,
-                                    label = { Text(bottomNavItem.label) },
-                                    icon = {
-                                        Icon(bottomNavItem.icon, bottomNavItem.label)
-                                    },
-                                    onClick = {
-                                        navSelectedCallBack(index, bottomNavItem)
-                                    }
-                                )
-                            }
+                        AnimatedVisibility(
+                            visible = isShowingBottomBar,
+                            enter = slideInVertically(
+                                initialOffsetY = { it },
+                                animationSpec = tween(durationMillis = 100),
+                            ), exit = slideOutVertically(
+                                targetOffsetY = { it },
+                                animationSpec = tween(durationMillis = 100)
+                            )
+                        ) {
+                            NavigationBar() {
+                                getBottomNavigationItems().forEachIndexed { index, bottomNavItem ->
+                                    NavigationBarItem(
+                                        selected = index == navItemSelected,
+                                        label = { Text(bottomNavItem.label) },
+                                        icon = {
+                                            Icon(bottomNavItem.icon, bottomNavItem.label)
+                                        },
+                                        onClick = {
+                                            navSelectedCallBack(index, bottomNavItem)
+                                        }
+                                    )
+                                }
 
+                            }
                         }
                     }) { innerPadding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = Screen.Home,
-                        modifier = Modifier.padding(innerPadding)
+                    CompositionLocalProvider(
+                        LocalAppNavigator provides NavigatorImpl(navController)
                     ) {
-                        composable<Screen.Home> {
-                            HomeScreen()
-                        }
-                        composable<Screen.Search> {
-                            SearchScreen()
-                        }
-                        composable<Screen.Create> {
-                            CreateScreen()
-                        }
-                        composable<Screen.Favourites> {
-                            FavoriteScreen()
+                        NavHost(
+                            navController = navController,
+                            startDestination = Screen.Home,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        ) {
+                            appNavGraph(innerPadding) {
+                                isShowingBottomBar = it
+                            }
                         }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MVIImageEditorTheme {
-        Greeting("Android")
     }
 }

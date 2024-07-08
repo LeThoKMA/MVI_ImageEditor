@@ -1,9 +1,7 @@
 package com.example.mviimageeditor.module
 
-
-import com.example.mviimageeditor.ui.theme.model.CollectionModel
-import com.example.mviimageeditor.ui.theme.model.PhotoModel
-import com.example.mviimageeditor.ui.theme.model.PhotoSearchModel
+import com.example.mviimageeditor.model.PhotoModel
+import com.example.mviimageeditor.model.PhotoSearchModel
 import com.example.mviimageeditor.utils.COLLECTION_ENDPOINT
 import com.example.mviimageeditor.utils.ID
 import com.example.mviimageeditor.utils.NAME
@@ -21,7 +19,7 @@ interface Api {
     @GET(COLLECTION_ENDPOINT)
     suspend fun getCollections(
         @Query(PAGE) page: Int,
-    ): List<CollectionModel>
+    ): List<com.example.mviimageeditor.model.CollectionModel>
 
     @GET(PHOTO_SEARCH_ENDPOINT)
     suspend fun searchPhotos(

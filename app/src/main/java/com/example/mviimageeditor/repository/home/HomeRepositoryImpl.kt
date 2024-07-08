@@ -1,7 +1,7 @@
 package com.example.imageEditor2.repository.home
 
 
-import com.example.mviimageeditor.ui.theme.model.CollectionModel
+import com.example.mviimageeditor.model.CollectionModel
 import com.example.mviimageeditor.module.Api
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 class HomeRepositoryImpl(private val api: Api) : HomeRepository {
-    override suspend fun getCollections(page: Int): Flow<List<CollectionModel>> {
+    override suspend fun getCollections(page: Int): Flow<List<com.example.mviimageeditor.model.CollectionModel>> {
         return withContext(Dispatchers.IO) {
             flow {
                 emit(api.getCollections(page))
