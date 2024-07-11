@@ -2,7 +2,9 @@ package com.example.mviimageeditor.ui.detail
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import com.example.mviimageeditor.ContractViewModel
 
 interface DetailContract :
@@ -19,17 +21,24 @@ interface DetailContract :
         ),
         @Stable
         val editState: EditState = EditState.NONE,
-        val selectedColor: Color = Color.Red
+        val selectedColor: Color = Color.Red,
+        val pathList: MutableList<DrawPath> = colorList.map { DrawPath(Path(), it) }
+            .toMutableList(),
     )
 
     sealed class Event {
         data class SelectColor(val color: Color) : Event()
         data class OnChangeEditState(val editState: EditState) : Event()
+
+        data class UpdateDrawPath(val drawPath: Path) : Event()
+
     }
 
     sealed class Effect()
 
 }
+
+data class DrawPath(val path: Path, val color: Color)
 
 enum class EditState {
     NONE,

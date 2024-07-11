@@ -62,10 +62,14 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     var offset by remember { mutableStateOf(Offset.Zero) }
     var isExpanded by remember { mutableStateOf(false) }
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
-    val path by remember {
+    var drawPath by remember {
         mutableStateOf(
-            Path()
+            state.pathList.find { it.color == state.selectedColor }
         )
+    }
+
+    LaunchedEffect(key1 = state.selectedColor) {
+        drawPath = state.pathList.find { it.color == state.selectedColor }
     }
 
     var point by remember {
@@ -100,9 +104,9 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 if (state.editState == EditState.DRAW) {
                     detectDragGestures(onDragStart = {
                         point = it
-                        path.moveTo(it.x, it.y)
+                        drawPath?.path?.moveTo(it.x, it.y)
                     }, onDragCancel = {
-                        path.close()
+                        drawPath?.path?.close()
                     }) { change, dragAmount ->
                         point = change.position
                         pathList.add(change.position)
@@ -122,7 +126,7 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 )
                 .drawWithContent {
                     drawContent()
-                    drawPath(point, path, state.selectedColor)
+                    drawPath?.let { drawPath(point, path = it.path, it.color) }
                 }
                 .onGloballyPositioned { layoutCoordinates ->
                     imageSize = layoutCoordinates.size
