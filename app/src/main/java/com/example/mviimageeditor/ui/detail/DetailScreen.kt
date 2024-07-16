@@ -1,6 +1,8 @@
 package com.example.mviimageeditor.ui.detail
 
+import android.graphics.PorterDuff
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,11 +35,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.copy
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale.Companion.Crop
@@ -67,14 +72,15 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
             state.pathList.find { it.color == state.selectedColor }
         )
     }
-
-    LaunchedEffect(key1 = state.selectedColor) {
-        drawPath = state.pathList.find { it.color == state.selectedColor }
-    }
-
     var point by remember {
         mutableStateOf<Offset>(Offset(0f, 0f))
     }
+
+    LaunchedEffect(key1 = state.selectedColor) {
+        drawPath = state.pathList.find { it.color == state.selectedColor }
+        point = Offset(0f, 0f)
+    }
+
     val pathList = remember {
         mutableStateListOf<Offset>()
     }
@@ -105,6 +111,9 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                     detectDragGestures(onDragStart = {
                         point = it
                         drawPath?.path?.moveTo(it.x, it.y)
+                    }, onDragEnd = {
+                        drawPath?.path?.moveTo(point.x, point.y)
+                        drawPath?.path?.close()
                     }, onDragCancel = {
                         drawPath?.path?.close()
                     }) { change, dragAmount ->
@@ -133,6 +142,14 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 },
             contentScale = Crop,
         )
+
+        state.pathList.forEach {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                drawPath(
+                    it.path, it.color, style = Stroke(10f),
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -190,12 +207,12 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
 }
 
 fun ContentDrawScope.drawPath(point: Offset, path: Path, color: Color) {
-    drawPath(
+    if (point != Offset(0f, 0f)) drawPath(
         path = path.apply {
             lineTo(point.x, point.y)
         },
         color = color,
-        style = Stroke(10f)
+        style = Stroke(10f),
     )
 }
 

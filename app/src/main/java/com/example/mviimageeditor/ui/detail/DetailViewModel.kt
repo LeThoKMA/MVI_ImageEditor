@@ -52,5 +52,10 @@ class DetailViewModel() : BaseViewModel(), DetailContract {
         _state.update {
             it.copy(editState = editState)
         }
+        if (editState == EditState.ERASER){
+            _state.update {
+                it.copy(selectedColor = Color.Transparent)
+            }
+        }
     }
 }

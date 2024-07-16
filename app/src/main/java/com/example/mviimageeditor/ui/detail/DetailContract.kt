@@ -17,7 +17,8 @@ interface DetailContract :
             Color.Blue,
             Color.Yellow,
             Color.Magenta,
-            Color.Cyan
+            Color.Cyan,
+            Color.Transparent
         ),
         @Stable
         val editState: EditState = EditState.NONE,
