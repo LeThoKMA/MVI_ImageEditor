@@ -29,15 +29,15 @@ class DetailViewModel() : BaseViewModel(), DetailContract {
             }
 
             is DetailContract.Event.UpdateDrawPath -> {
-                updateDrawPath(event.drawPath)
+                updateDrawPath(event.drawPath, event.sourcePathIndex)
             }
         }
     }
 
-    private fun updateDrawPath(drawPath: Path) {
+    private fun updateDrawPath(drawPath: Path, index: Int) {
         _state.update {
             it.copy(pathList = _state.value.pathList.apply {
-                add(DrawPath(path = drawPath, color = it.selectedColor))
+               this[index].path = drawPath
             })
         }
     }
@@ -49,13 +49,19 @@ class DetailViewModel() : BaseViewModel(), DetailContract {
     }
 
     private fun updateEditState(editState: EditState) {
-        _state.update {
-            it.copy(editState = editState)
-        }
-        if (editState == EditState.ERASER){
+        if (editState == EditState.ERASER) {
             _state.update {
-                it.copy(selectedColor = Color.Transparent)
+                it.copy(
+                    selectedColor = Color.Transparent,
+                    editState = editState
+                )
+            }
+        } else {
+            _state.update {
+                it.copy(editState = editState)
             }
         }
+
+
     }
 }

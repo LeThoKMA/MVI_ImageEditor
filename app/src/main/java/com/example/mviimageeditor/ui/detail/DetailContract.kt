@@ -31,7 +31,7 @@ interface DetailContract :
         data class SelectColor(val color: Color) : Event()
         data class OnChangeEditState(val editState: EditState) : Event()
 
-        data class UpdateDrawPath(val drawPath: Path) : Event()
+        data class UpdateDrawPath(val drawPath: Path, val sourcePathIndex: Int) : Event()
 
     }
 
@@ -39,7 +39,7 @@ interface DetailContract :
 
 }
 
-data class DrawPath(val path: Path, val color: Color)
+data class DrawPath(var path: Path, val color: Color)
 
 enum class EditState {
     NONE,

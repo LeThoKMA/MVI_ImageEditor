@@ -1,6 +1,7 @@
 package com.example.mviimageeditor.ui.detail
 
 import android.graphics.PorterDuff
+import android.media.VolumeShaper.Operation
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -25,6 +26,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -36,8 +38,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.copy
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -51,6 +55,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.mviimageeditor.R
@@ -75,6 +80,7 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     var point by remember {
         mutableStateOf<Offset>(Offset(0f, 0f))
     }
+
 
     LaunchedEffect(key1 = state.selectedColor) {
         drawPath = state.pathList.find { it.color == state.selectedColor }
@@ -107,20 +113,24 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 }
             }
             .pointerInput(key1 = state.editState) {
-                if (state.editState == EditState.DRAW) {
-                    detectDragGestures(onDragStart = {
-                        point = it
-                        drawPath?.path?.moveTo(it.x, it.y)
-                    }, onDragEnd = {
-                        drawPath?.path?.moveTo(point.x, point.y)
-                        drawPath?.path?.close()
-                    }, onDragCancel = {
-                        drawPath?.path?.close()
-                    }) { change, dragAmount ->
-                        point = change.position
-                        pathList.add(change.position)
+                //  if (state.editState == EditState.DRAW) {
+                detectDragGestures(onDragStart = {
+                    point = it
+                    drawPath?.path?.moveTo(it.x, it.y)
+                }, onDragEnd = {
+                    drawPath?.path?.moveTo(point.x, point.y)
+                    drawPath?.path?.close()
+                }, onDragCancel = {
+                    drawPath?.path?.close()
+                }) { change, dragAmount ->
+                    point = change.position
+                    drawPath?.path?.apply {
+                        lineTo(point.x, point.y)
                     }
+
+//                    pathList.add(change.position)
                 }
+                // }
             }
     ) {
         GlideImage(
@@ -135,7 +145,14 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 )
                 .drawWithContent {
                     drawContent()
-                    drawPath?.let { drawPath(point, path = it.path, it.color) }
+                    state.pathList.forEach {
+                        drawPath(
+                            it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
+                        )
+                    }
+//                    drawPath?.path?.apply {
+//                        lineTo(point.x, point.y)
+//                    }
                 }
                 .onGloballyPositioned { layoutCoordinates ->
                     imageSize = layoutCoordinates.size
@@ -143,13 +160,33 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
             contentScale = Crop,
         )
 
-        state.pathList.forEach {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                drawPath(
-                    it.path, it.color, style = Stroke(10f),
-                )
-            }
-        }
+
+//        Canvas(modifier = Modifier.fillMaxSize()) {
+////            state.pathList.forEachIndexed { index, it ->
+////                drawPath(
+////                    it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
+////                )
+//////                if (state.editState == EditState.ERASER) {
+//////                    drawPath?.path?.let { it1 ->
+//////                        event.invoke(
+//////                            DetailContract.Event.UpdateDrawPath(
+//////                                Path.combine(
+//////                                    PathOperation.ReverseDifference,
+//////                                    it1, it.path
+//////                                ), index
+//////                            )
+//////                        )
+//////                    }
+//////                }
+////            }
+////            if (point != Offset(0f, 0f)) drawPath(
+////                path = drawPath!!.path.apply {
+////                    lineTo(point.x, point.y)
+////                },
+////                color = drawPath!!.color,
+////                style = Stroke(10f),
+////            )
+//        }
 
         Column(
             modifier = Modifier
@@ -213,6 +250,7 @@ fun ContentDrawScope.drawPath(point: Offset, path: Path, color: Color) {
         },
         color = color,
         style = Stroke(10f),
+        blendMode = BlendMode.SrcOver
     )
 }
 
