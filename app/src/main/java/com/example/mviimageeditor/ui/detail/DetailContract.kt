@@ -23,15 +23,16 @@ interface DetailContract :
         @Stable
         val editState: EditState = EditState.NONE,
         val selectedColor: Color = Color.Red,
-        val pathList: MutableList<DrawPath> = colorList.map { DrawPath(Path(), it) }
-            .toMutableList(),
+        val pathList: MutableList<DrawPath> = mutableListOf(DrawPath(Path(), Color.Red))
     )
 
     sealed class Event {
         data class SelectColor(val color: Color) : Event()
         data class OnChangeEditState(val editState: EditState) : Event()
 
-        data class UpdateDrawPath(val drawPath: Path, val sourcePathIndex: Int) : Event()
+        data class UpdateDrawPath(val drawPath: Path) : Event()
+
+        data object AddDrawPath : Event()
 
     }
 

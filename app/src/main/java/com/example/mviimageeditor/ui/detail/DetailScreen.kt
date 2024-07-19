@@ -1,7 +1,5 @@
 package com.example.mviimageeditor.ui.detail
 
-import android.graphics.PorterDuff
-import android.media.VolumeShaper.Operation
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -26,7 +24,6 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -38,15 +35,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
-import androidx.compose.ui.graphics.copy
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale.Companion.Crop
@@ -55,7 +50,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.mviimageeditor.R
@@ -74,21 +68,16 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
     var drawPath by remember {
         mutableStateOf(
-            state.pathList.find { it.color == state.selectedColor }
+            state.pathList.last()
         )
     }
     var point by remember {
         mutableStateOf<Offset>(Offset(0f, 0f))
     }
 
-
     LaunchedEffect(key1 = state.selectedColor) {
-        drawPath = state.pathList.find { it.color == state.selectedColor }
+        drawPath = state.pathList.last()
         point = Offset(0f, 0f)
-    }
-
-    val pathList = remember {
-        mutableStateListOf<Offset>()
     }
 
     Box(
@@ -113,22 +102,20 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 }
             }
             .pointerInput(key1 = state.editState) {
-                //  if (state.editState == EditState.DRAW) {
+//                if (state.editState == EditState.DRAW) {
                 detectDragGestures(onDragStart = {
                     point = it
-                    drawPath?.path?.moveTo(it.x, it.y)
+                    drawPath.path.moveTo(it.x, it.y)
                 }, onDragEnd = {
-                    drawPath?.path?.moveTo(point.x, point.y)
-                    drawPath?.path?.close()
+                    drawPath.path.moveTo(point.x, point.y)
+                    drawPath.path.close()
                 }, onDragCancel = {
-                    drawPath?.path?.close()
+                    drawPath.path.close()
                 }) { change, dragAmount ->
                     point = change.position
-                    drawPath?.path?.apply {
+                    drawPath.path.apply {
                         lineTo(point.x, point.y)
                     }
-
-//                    pathList.add(change.position)
                 }
                 // }
             }
@@ -150,9 +137,6 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                             it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
                         )
                     }
-//                    drawPath?.path?.apply {
-//                        lineTo(point.x, point.y)
-//                    }
                 }
                 .onGloballyPositioned { layoutCoordinates ->
                     imageSize = layoutCoordinates.size
@@ -161,32 +145,23 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
         )
 
 
-//        Canvas(modifier = Modifier.fillMaxSize()) {
-////            state.pathList.forEachIndexed { index, it ->
-////                drawPath(
-////                    it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
-////                )
-//////                if (state.editState == EditState.ERASER) {
-//////                    drawPath?.path?.let { it1 ->
-//////                        event.invoke(
-//////                            DetailContract.Event.UpdateDrawPath(
-//////                                Path.combine(
-//////                                    PathOperation.ReverseDifference,
-//////                                    it1, it.path
-//////                                ), index
-//////                            )
-//////                        )
-//////                    }
-//////                }
-////            }
-////            if (point != Offset(0f, 0f)) drawPath(
-////                path = drawPath!!.path.apply {
-////                    lineTo(point.x, point.y)
-////                },
-////                color = drawPath!!.color,
-////                style = Stroke(10f),
-////            )
-//        }
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            //            state.pathList.forEachIndexed { index, it ->
+            //                drawPath(
+            //                    it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
+            //                )
+            if (point != Offset(0f, 0f)) drawPath(
+                path = drawPath.path,
+                color = drawPath.color,
+                style = Stroke(10f),
+            )
+            if (state.editState == EditState.ERASER) {
+                event.invoke(
+                    DetailContract.Event.UpdateDrawPath(drawPath.path)
+                )
+            }
+        }
+
 
         Column(
             modifier = Modifier

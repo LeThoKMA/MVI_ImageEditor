@@ -37,7 +37,6 @@ import com.example.mviimageeditor.ui.theme.MVIImageEditorTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             MVIImageEditorTheme {
                 var navItemSelected by remember { mutableIntStateOf(0) }

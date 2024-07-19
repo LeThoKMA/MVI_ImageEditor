@@ -2,6 +2,9 @@ package com.example.mviimageeditor.ui.detail
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.divide
 import com.example.mviimageeditor.BaseViewModel
 import com.example.mviimageeditor.utils.QUERY_SEARCH
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,22 +32,43 @@ class DetailViewModel() : BaseViewModel(), DetailContract {
             }
 
             is DetailContract.Event.UpdateDrawPath -> {
-                updateDrawPath(event.drawPath, event.sourcePathIndex)
+                updateDrawPath(event.drawPath)
+            }
+
+            is DetailContract.Event.AddDrawPath -> {
+                addDrawPath()
             }
         }
     }
 
-    private fun updateDrawPath(drawPath: Path, index: Int) {
+    private fun addDrawPath() {
         _state.update {
-            it.copy(pathList = _state.value.pathList.apply {
-               this[index].path = drawPath
-            })
+            it.copy(
+                pathList = _state.value.pathList.apply {
+                    add(
+                        DrawPath(
+                            path = Path(),
+                            color = _state.value.selectedColor
+                        )
+                    )
+                }
+            )
         }
+    }
+
+    private fun updateDrawPath(drawPath: Path) {
     }
 
     private fun updateColor(color: Color) {
         _state.update {
-            it.copy(selectedColor = color)
+            it.copy(selectedColor = color, pathList = _state.value.pathList.apply {
+                add(
+                    DrawPath(
+                        path = Path(),
+                        color = color
+                    )
+                )
+            })
         }
     }
 
