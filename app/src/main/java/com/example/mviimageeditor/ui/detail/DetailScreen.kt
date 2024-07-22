@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,11 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -76,7 +73,11 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     }
 
     LaunchedEffect(key1 = state.selectedColor) {
-        drawPath = state.pathList.last()
+        drawPath =
+            if (state.selectedColor != Color.Transparent) state.pathList.last() else DrawPath(
+                Path(),
+                Color.Transparent
+            )
         point = Offset(0f, 0f)
     }
 
@@ -132,11 +133,11 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 )
                 .drawWithContent {
                     drawContent()
-                    state.pathList.forEach {
-                        drawPath(
-                            it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
-                        )
-                    }
+//                    state.pathList.forEach {
+//                        drawPath(
+//                            it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
+//                        )
+//                    }
                 }
                 .onGloballyPositioned { layoutCoordinates ->
                     imageSize = layoutCoordinates.size
@@ -145,21 +146,48 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
         )
 
 
-        Canvas(modifier = Modifier.fillMaxSize()) {
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    compositingStrategy = CompositingStrategy.Offscreen
+                }
+                .drawWithContent {
+                    state.pathList.forEach {
+                        drawPath(
+                            it.path,
+                            it.color,
+                            style = Stroke(10f),
+                            blendMode = BlendMode.SrcOver
+                        )
+                    }
+                    drawContent()
+                }
+        ) {
             //            state.pathList.forEachIndexed { index, it ->
             //                drawPath(
             //                    it.path, it.color, style = Stroke(10f), blendMode = BlendMode.SrcOver
             //                )
-            if (point != Offset(0f, 0f)) drawPath(
-                path = drawPath.path,
-                color = drawPath.color,
-                style = Stroke(10f),
-            )
+            if (point != Offset(0f, 0f) && state.editState != EditState.ERASER)
+                drawPath(
+                    path = drawPath.path,
+                    color = drawPath.color,
+                    style = Stroke(10f),
+                    blendMode = BlendMode.SrcOver
+                )
             if (state.editState == EditState.ERASER) {
-                event.invoke(
-                    DetailContract.Event.UpdateDrawPath(drawPath.path)
+                drawPath(
+                    path = drawPath.path,
+                    color = drawPath.color,
+                    style = Stroke(30f),
+                    blendMode = BlendMode.Clear
                 )
             }
+//                if (state.editState == EditState.ERASER) {
+//                    event.invoke(
+//                        DetailContract.Event.UpdateDrawPath(drawPath.path)
+//                    )
+//                }
         }
 
 
