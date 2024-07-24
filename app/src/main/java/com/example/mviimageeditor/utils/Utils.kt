@@ -130,10 +130,10 @@ import com.example.mviimageeditor.utils.SCOPE
 //
 fun authorizeUrl(): String {
     return "https://unsplash.com/oauth/authorize" +
-        "?client_id=" + ACCESS_KEY +
-        "&redirect_uri=" + REDIRECT_URI +
-        "&response_type=" + RESPONSE_TYPE +
-        "&scope=" + SCOPE
+            "?client_id=" + ACCESS_KEY +
+            "&redirect_uri=" + REDIRECT_URI +
+            "&response_type=" + RESPONSE_TYPE +
+            "&scope=" + SCOPE
 }
 
 fun String.toAuthorizationCode(): String {

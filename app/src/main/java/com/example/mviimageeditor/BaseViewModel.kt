@@ -83,7 +83,7 @@ abstract class BaseViewModel() : ViewModel() {
             } else if (error is IOException) {
                 Log.e("TAG", error.message.toString())
                 _baseSate.update {
-                    it.copy(errorMessage = "Bạn không có quyền truy cập")
+                    it.copy(errorMessage = error.message.toString())
                 }
             }
         }
@@ -97,5 +97,6 @@ abstract class BaseViewModel() : ViewModel() {
 
     sealed class Effect {
         data object OnErrorAuthorize : Effect()
+        data class ShowToast(val message: String) : Effect()
     }
 }

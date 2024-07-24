@@ -1,9 +1,9 @@
 package com.example.mviimageeditor.ui.detail
 
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import com.example.mviimageeditor.ContractViewModel
 
@@ -30,17 +30,24 @@ interface DetailContract :
         data class SelectColor(val color: Color) : Event()
         data class OnChangeEditState(val editState: EditState) : Event()
 
-        data class UpdateDrawPath(val drawPath: Path) : Event()
+        data class DownloadImage(val source: ImageBitmap) : Event()
 
         data object AddDrawPath : Event()
 
     }
 
-    sealed class Effect()
+    sealed class Effect {
+        data class ShowToast(val message: String) : Effect()
+    }
 
 }
 
-data class DrawPath(var path: Path, val color: Color)
+data class DrawPath(
+    val path: Path,
+    val color: Color,
+    val strokeWidth: Float = 10f,
+    val blendMode: BlendMode = BlendMode.SrcOver
+)
 
 enum class EditState {
     NONE,
@@ -48,5 +55,6 @@ enum class EditState {
     ERASER,
     CROP,
     FILTER,
-    DONE
+    DONE,
+    CLEAR
 }

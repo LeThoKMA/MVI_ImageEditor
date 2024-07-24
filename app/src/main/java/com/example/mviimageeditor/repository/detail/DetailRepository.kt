@@ -1,4 +1,4 @@
-package com.example.imageEditor2.repository.detail
+package com.example.mviimageeditor.repository.detail
 
 import android.graphics.Bitmap
 import kotlinx.coroutines.flow.Flow

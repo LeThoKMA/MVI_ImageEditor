@@ -1,7 +1,7 @@
 package com.example.mviimageeditor
 
 import android.app.Application
-import com.example.mviimageeditor.di.module.myModule
+import com.example.mviimageeditor.module.myModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.component.KoinComponent
