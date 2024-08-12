@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -20,11 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -32,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,12 +37,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
@@ -54,17 +46,23 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale.Companion.Crop
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.DpRect
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.mviimageeditor.R
+import com.example.mviimageeditor.custom.CropView
 import com.example.mviimageeditor.ui.theme.GrayE0
+import com.example.mviimageeditor.ui.theme.Trans909090
+import com.example.mviimageeditor.ui.theme.TransGray
 import com.example.mviimageeditor.use
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -75,10 +73,24 @@ import kotlin.math.abs
 fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()) {
     val (state, event, effect) = use(viewModel = detailViewModel)
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     var isExpanded by remember { mutableStateOf(false) }
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
+    var cropSize by remember {
+        mutableStateOf(
+            DpRect(
+                origin = DpOffset(screenWidth / 4, screenHeight / 4),
+                size = DpSize(
+                    screenWidth / 2,
+                    screenHeight / 2
+                )
+            )
+        )
+    }
     var drawPath by remember {
         mutableStateOf(
             state.pathList.last()
@@ -208,17 +220,24 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                     )
                 }
             }
-            if (state.editState == EditState.CROP) Canvas(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Transparent)
-            ) {
-                drawRect(
-                    Color.White,
-                    topLeft = Offset(imageSize.width / 4f, imageSize.height / 4f),
-                    size.div(2f)
+            if (state.editState == EditState.CROP)
+                CropView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+                        .background(TransGray),
+                    onDrag1stQuad = {},
+                    onDrag2ndQuad = { it ->
+                        cropSize = cropSize.copy(
+                            left = cropSize.left.minus(it.x.dp),
+                            top = cropSize.top.minus(it.y.dp),
+                            right = cropSize.right,
+                            bottom = cropSize.bottom
+                        )
+                    },
+                    onDrag3rdQuad = {},
+                    onDrag4thQuad = {}
                 )
-            }
         }
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
