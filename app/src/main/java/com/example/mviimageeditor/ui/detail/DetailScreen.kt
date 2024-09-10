@@ -2,8 +2,11 @@ package com.example.mviimageeditor.ui.detail
 
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -19,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,16 +46,17 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale.Companion.Crop
+import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.DpRect
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,7 +65,6 @@ import com.bumptech.glide.integration.compose.GlideImage
 import com.example.mviimageeditor.R
 import com.example.mviimageeditor.custom.CropView
 import com.example.mviimageeditor.ui.theme.GrayE0
-import com.example.mviimageeditor.ui.theme.Trans909090
 import com.example.mviimageeditor.ui.theme.TransGray
 import com.example.mviimageeditor.use
 import kotlinx.coroutines.flow.collectLatest
@@ -74,6 +78,7 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     val (state, event, effect) = use(viewModel = detailViewModel)
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
+    val density = configuration.densityDpi
     val screenWidth = configuration.screenWidthDp.dp
     val screenHeight = configuration.screenHeightDp.dp
     var scale by remember { mutableFloatStateOf(1f) }
@@ -82,15 +87,27 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
     var cropSize by remember {
         mutableStateOf(
-            DpRect(
-                origin = DpOffset(screenWidth / 4, screenHeight / 4),
-                size = DpSize(
-                    screenWidth / 2,
-                    screenHeight / 2
-                )
-            )
+            DpSize(screenWidth / 2, screenHeight / 4),
         )
     }
+    var topValue by remember {
+        mutableFloatStateOf(100f)
+    }
+    val animateTopValue by animateDpAsState(targetValue = topValue.dp, label = "topValue")
+    var bottomValue by remember {
+        mutableFloatStateOf(100f)
+    }
+    val animateBottomValue by animateDpAsState(targetValue = bottomValue.dp, label = "bottom")
+    var leftValue by remember {
+        mutableFloatStateOf(50f)
+    }
+    val animateLeftValue by animateDpAsState(targetValue = leftValue.dp, label = "lef")
+
+    var rightValue by remember {
+        mutableFloatStateOf(50f)
+    }
+    val animateRightValue by animateDpAsState(targetValue = rightValue.dp, label = "right")
+
     var drawPath by remember {
         mutableStateOf(
             state.pathList.last()
@@ -99,6 +116,12 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     var point by remember {
         mutableStateOf(Offset.Zero)
     }
+
+    var imageCrop by remember {
+        mutableStateOf<BitmapPainter?>(null)
+    }
+
+    val cropViewPosition = remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
 
     val coroutineScope = rememberCoroutineScope()
     val graphicsLayer = rememberGraphicsLayer()
@@ -185,6 +208,18 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 contentScale = Crop,
             )
 
+            if (imageCrop != null) Image(
+                painter = imageCrop!!, contentDescription = "",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = if (scale > 1) scale else 1f,
+                        scaleY = if (scale > 1) scale else 1f,
+                        translationX = if (scale > 1) offset.x else 0f,
+                        translationY = if (scale > 1) offset.y else 0f
+                    ),
+            )
+
 
             Canvas(
                 modifier = Modifier
@@ -223,21 +258,70 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
             if (state.editState == EditState.CROP)
                 CropView(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .align(Alignment.Center)
-                        .background(TransGray),
-                    onDrag1stQuad = {},
-                    onDrag2ndQuad = { it ->
-                        cropSize = cropSize.copy(
-                            left = cropSize.left.minus(it.x.dp),
-                            top = cropSize.top.minus(it.y.dp),
-                            right = cropSize.right,
-                            bottom = cropSize.bottom
+                        .padding(
+                            top = animateTopValue,
+                            bottom =animateBottomValue,
+                            start = animateLeftValue,
+                            end = animateRightValue
                         )
+                        .fillMaxSize()
+//                            .offset {
+//                                IntOffset(
+//                                    animateOffset.x.roundToInt(), animateOffset.y.roundToInt()
+//                                )
+//                            }
+                        .background(TransGray)
+                        .onGloballyPositioned { layoutCoordinates ->
+                            // Hoặc lấy tọa độ trong bố cục cha (vị trí tương đối)
+                            cropViewPosition.value = layoutCoordinates.boundsInParent()
+                        },
+                    onDrag1stQuad = {
+                        val tmpTop = topValue + it.y
+                        val tmpLeft = rightValue - it.x
+                        if(tmpTop>=0 && tmpLeft>=0) {
+                            topValue =tmpTop
+                            rightValue = tmpLeft
+                        }
                     },
-                    onDrag3rdQuad = {},
-                    onDrag4thQuad = {}
+                    onDrag2ndQuad = {
+                        val tmpTop = topValue + it.y
+                        val tmpLeft = leftValue + it.x
+                        if(tmpTop>=0 && tmpLeft>=0) {
+                            topValue = tmpTop
+                            leftValue =tmpLeft
+                        }
+                    },
+                    onDrag3rdQuad = {
+                        val tmpBottom = bottomValue - it.y
+                        val tmpLeft = leftValue + it.x
+                        if(tmpBottom>=0 && tmpLeft>=0) {
+                            bottomValue = tmpBottom
+                            leftValue = tmpLeft
+                        }
+                    },
+                    onDrag4thQuad = {
+                        val tmpBottom = bottomValue - it.y
+                        val tmpRight = rightValue - it.x
+                        if(tmpBottom>=0 && tmpRight>=0) {
+                            bottomValue = tmpBottom
+                            rightValue = tmpRight
+                        }
+//                            val tmpRight = rightSize + it.x.dp / 2
+//                            val tmpBottom = bottomSize + it.y.dp / 2
+//                            if (tmpRight in screenWidth.times(0.5f)..screenWidth.times(0.75f) &&
+//                                tmpBottom in screenHeight.div(4)..screenHeight.times(0.625f)
+//                            ) {
+//                                cropSize = cropSize.copy(
+//                                    width = cropSize.width + it.x.dp / 2,
+//                                    height = cropSize.height + it.y.dp / 2
+//                                )
+//                                offsetCropView += Offset(it.x / 8, it.y / 8)
+//                                rightSize = tmpRight
+//                                bottomSize = tmpBottom
+//                            }
+                    },
                 )
+
         }
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -281,7 +365,13 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                         tint = GrayE0,
                     )
                 }
-                IconButton(onClick = { event.invoke(DetailContract.Event.OnChangeEditState(EditState.CROP)) }) {
+                IconButton(onClick = {
+                    event.invoke(
+                        DetailContract.Event.OnChangeEditState(
+                            EditState.CROP
+                        )
+                    )
+                }) {
                     Icon(
                         painter = painterResource(id = R.drawable.icon_crop),
                         contentDescription = "crop",
@@ -318,11 +408,36 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
             ) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "save")
             }
+            if (state.editState == EditState.CROP) FloatingActionButton(
+                onClick = {
+                    coroutineScope.launch {
+                        val bitmap = graphicsLayer.toImageBitmap()
+                        imageCrop = BitmapPainter(
+                            bitmap,
+                            IntOffset(
+                                cropViewPosition.value!!.topLeft.x.toInt(),
+                                cropViewPosition.value!!.topLeft.y.toInt()
+                            ),
+                            IntSize(cropSize.width.value.toInt(), cropSize.height.value.toInt())
+                        )
+                    }
+                }, modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(8.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Send, contentDescription = "next")
+            }
         }
     }
 }
 
-fun offsetChange(offset: Offset, scale: Float, pan: Offset, zoom: Float, imgSize: IntSize): Offset {
+fun offsetChange(
+    offset: Offset,
+    scale: Float,
+    pan: Offset,
+    zoom: Float,
+    imgSize: IntSize,
+): Offset {
     val anchorX = imgSize.width.times(abs(scale - 1)) / 2
     val anchorY = imgSize.height.times(abs(scale - 1)) / 2
     val offsetX =

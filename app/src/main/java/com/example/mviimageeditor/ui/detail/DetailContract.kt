@@ -1,6 +1,7 @@
 package com.example.mviimageeditor.ui.detail
 
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -23,7 +24,8 @@ interface DetailContract :
         @Stable
         val editState: EditState = EditState.NONE,
         val selectedColor: Color = Color.Red,
-        val pathList: MutableList<DrawPath> = mutableListOf(DrawPath(Path(), Color.Red))
+        val pathList: MutableList<DrawPath> = mutableListOf(DrawPath(Path(), Color.Red)),
+        val offsetCropView: Offset = Offset.Zero,
     )
 
     sealed class Event {
@@ -33,6 +35,8 @@ interface DetailContract :
         data class DownloadImage(val source: ImageBitmap) : Event()
 
         data object AddDrawPath : Event()
+
+        data class OnDragCropView(val offset: Offset) : Event()
 
     }
 
@@ -46,7 +50,7 @@ data class DrawPath(
     val path: Path,
     val color: Color,
     val strokeWidth: Float = 10f,
-    val blendMode: BlendMode = BlendMode.SrcOver
+    val blendMode: BlendMode = BlendMode.SrcOver,
 )
 
 enum class EditState {

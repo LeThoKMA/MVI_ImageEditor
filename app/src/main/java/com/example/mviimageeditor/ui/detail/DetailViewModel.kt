@@ -1,13 +1,14 @@
 package com.example.mviimageeditor.ui.detail
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.lifecycle.viewModelScope
-import com.example.mviimageeditor.repository.detail.DetailRepository
 import com.example.mviimageeditor.BaseViewModel
+import com.example.mviimageeditor.repository.detail.DetailRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -44,6 +45,16 @@ class DetailViewModel(private val detailRepository: DetailRepository) : BaseView
             is DetailContract.Event.AddDrawPath -> {
                 addDrawPath()
             }
+
+            is DetailContract.Event.OnDragCropView -> {
+                updateOffsetCropView(event.offset)
+            }
+        }
+    }
+
+    private fun updateOffsetCropView(offset: Offset) {
+        _state.update {
+            it.copy(offsetCropView = offset)
         }
     }
 
