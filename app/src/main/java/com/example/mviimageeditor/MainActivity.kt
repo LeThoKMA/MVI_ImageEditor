@@ -2,20 +2,18 @@ package com.example.mviimageeditor
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -28,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -42,7 +41,6 @@ import com.example.mviimageeditor.ui.theme.MVIImageEditorTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestPermission()
         setContent {
             MVIImageEditorTheme {
                 var navItemSelected by remember { mutableIntStateOf(0) }
@@ -86,7 +84,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
                                 }
-
                             }
                         }
                     }) { innerPadding ->
@@ -107,9 +104,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        requestPermission()
     }
 
-    fun requestPermission() {
+    private fun requestPermission() {
         val launcher =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -120,23 +118,42 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            launcher.launch(
-                arrayOf(
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                    Manifest.permission.POST_NOTIFICATIONS,
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-                ),
-            )
+        val permissionNeedRequests = checkPermissionsFromManifest()
+        if (permissionNeedRequests.isEmpty()) {
+            return
         } else {
             launcher.launch(
-                arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ),
+                permissionNeedRequests.toTypedArray()
             )
         }
+    }
+
+    private fun checkPermissionsFromManifest(): List<String> {
+        val permissionNeedRequests = mutableListOf<String>()
+        try {
+            // Lấy thông tin về package của ứng dụng
+            val packageInfo = packageManager.getPackageInfo(
+                packageName,
+                PackageManager.GET_PERMISSIONS
+            )
+
+            // Danh sách quyền được khai báo trong AndroidManifest.xml
+            val requestedPermissions = packageInfo.requestedPermissions
+
+            // Duyệt qua từng quyền để kiểm tra xem đã được cấp chưa
+            requestedPermissions?.forEach { permission ->
+                when (ContextCompat.checkSelfPermission(this, permission)) {
+                    PackageManager.PERMISSION_GRANTED -> {
+                    }
+
+                    PackageManager.PERMISSION_DENIED -> {
+                        permissionNeedRequests.add(permission)
+                    }
+                }
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+        }
+        return permissionNeedRequests
     }
 }

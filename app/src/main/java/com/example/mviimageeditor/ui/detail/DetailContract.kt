@@ -6,12 +6,13 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import com.example.mviimageeditor.ContractViewModel
 
 interface DetailContract :
     ContractViewModel<DetailContract.State, DetailContract.Event, DetailContract.Effect> {
+    @Stable
     data class State(
-        @Stable
         val colorList: List<Color> = listOf(
             Color.Red,
             Color.Green,
@@ -21,11 +22,10 @@ interface DetailContract :
             Color.Cyan,
             Color.Transparent
         ),
-        @Stable
         val editState: EditState = EditState.NONE,
         val selectedColor: Color = Color.Red,
         val pathList: MutableList<DrawPath> = mutableListOf(DrawPath(Path(), Color.Red)),
-        val offsetCropView: Offset = Offset.Zero,
+        val imageCrop: BitmapPainter? = null,
     )
 
     sealed class Event {
@@ -33,11 +33,7 @@ interface DetailContract :
         data class OnChangeEditState(val editState: EditState) : Event()
 
         data class DownloadImage(val source: ImageBitmap) : Event()
-
-        data object AddDrawPath : Event()
-
-        data class OnDragCropView(val offset: Offset) : Event()
-
+        data class SaveImageCrop(val source: ImageBitmap, val topLeft: Offset, val bottomRight: Offset) : Event()
     }
 
     sealed class Effect {
