@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -32,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,20 +39,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale.Companion.Crop
+import androidx.compose.ui.layout.ContentScale.Companion.Fit
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -62,9 +59,9 @@ import androidx.compose.ui.unit.sp
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.mviimageeditor.R
+import com.example.mviimageeditor.custom.CropView
 import com.example.mviimageeditor.ui.theme.GrayE0
 import com.example.mviimageeditor.use
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -75,10 +72,19 @@ import kotlin.math.abs
 fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()) {
     val (state, event, effect) = use(viewModel = detailViewModel)
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+    val screenWidth = configuration.screenWidthDp.dp
+    val screenHeight = configuration.screenHeightDp.dp
+
     var scale by remember { mutableFloatStateOf(1f) }
+
     var offset by remember { mutableStateOf(Offset.Zero) }
+
     var isExpanded by remember { mutableStateOf(false) }
+
     var imageSize by remember { mutableStateOf(IntSize.Zero) }
+
     var drawPath by remember {
         mutableStateOf(
             state.pathList.last()
@@ -87,7 +93,6 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     var point by remember {
         mutableStateOf(Offset.Zero)
     }
-
     val coroutineScope = rememberCoroutineScope()
     val graphicsLayer = rememberGraphicsLayer()
 
@@ -173,6 +178,20 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                 contentScale = Crop,
             )
 
+            if (state.imageCrop != null) Image(
+                painter = state.imageCrop, contentDescription = "",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = if (scale > 1) scale else 1f,
+                        scaleY = if (scale > 1) scale else 1f,
+                        translationX = if (scale > 1) offset.x else 0f,
+                        translationY = if (scale > 1) offset.y else 0f
+                    )
+                    .background(Color.Black),
+                contentScale = Fit
+            )
+
 
             Canvas(
                 modifier = Modifier
@@ -208,19 +227,28 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                     )
                 }
             }
-            if (state.editState == EditState.CROP) Canvas(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Transparent)
-            ) {
-                drawRect(
-                    Color.White,
-                    topLeft = Offset(imageSize.width / 4f, imageSize.height / 4f),
-                    size.div(2f)
-                )
-            }
+            if (state.editState == EditState.CROP)
+                CropView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center),
+                    screenWidth / 4,
+                    screenHeight / 3,
+                ) { topLeft, bottomRight ->
+                    coroutineScope.launch {
+                        val imageBitmap = graphicsLayer.toImageBitmap()
+                        event.invoke(
+                            DetailContract.Event.SaveImageCrop(
+                                imageBitmap,
+                                topLeft,
+                                bottomRight
+                            )
+                        )
+                    }
+                }
+
         }
-        Box(modifier = Modifier.fillMaxSize()) {
+        if (state.editState != EditState.CROP) Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -248,13 +276,14 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                     )
                 }
 
-                IconButton(onClick = {
-                    event.invoke(
-                        DetailContract.Event.OnChangeEditState(
-                            EditState.ERASER
+                IconButton(
+                    onClick = {
+                        event.invoke(
+                            DetailContract.Event.OnChangeEditState(
+                                EditState.ERASER
+                            )
                         )
-                    )
-                }) {
+                    }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_eraser),
                         contentDescription = "erase",
@@ -262,7 +291,14 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
                         tint = GrayE0,
                     )
                 }
-                IconButton(onClick = { event.invoke(DetailContract.Event.OnChangeEditState(EditState.CROP)) }) {
+                if (state.editState == EditState.NONE || state.editState == EditState.DONE) IconButton(
+                    onClick = {
+                        event.invoke(
+                            DetailContract.Event.OnChangeEditState(
+                                EditState.CROP
+                            )
+                        )
+                    }) {
                     Icon(
                         painter = painterResource(id = R.drawable.icon_crop),
                         contentDescription = "crop",
@@ -303,7 +339,13 @@ fun DetailScreen(url: String, detailViewModel: DetailViewModel = koinViewModel()
     }
 }
 
-fun offsetChange(offset: Offset, scale: Float, pan: Offset, zoom: Float, imgSize: IntSize): Offset {
+fun offsetChange(
+    offset: Offset,
+    scale: Float,
+    pan: Offset,
+    zoom: Float,
+    imgSize: IntSize,
+): Offset {
     val anchorX = imgSize.width.times(abs(scale - 1)) / 2
     val anchorY = imgSize.height.times(abs(scale - 1)) / 2
     val offsetX =
