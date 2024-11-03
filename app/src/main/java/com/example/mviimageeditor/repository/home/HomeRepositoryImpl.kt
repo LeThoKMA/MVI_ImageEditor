@@ -1,19 +1,23 @@
 package com.example.mviimageeditor.repository.home
 
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.example.imageEditor2.repository.home.HomeRepository
 import com.example.mviimageeditor.module.Api
+import com.example.mviimageeditor.paging3.CollectionPagingSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 
 class HomeRepositoryImpl(private val api: Api) : HomeRepository {
-    override suspend fun getCollections(page: Int): Flow<List<com.example.mviimageeditor.model.CollectionModel>> {
+    override suspend fun getCollections(): Flow<PagingData<com.example.mviimageeditor.model.CollectionModel>> {
         return withContext(Dispatchers.IO) {
-            flow {
-                emit(api.getCollections(page))
-            }
+            Pager(PagingConfig(pageSize = 20)) {
+                CollectionPagingSource(api)
+            }.flow
         }
     }
 

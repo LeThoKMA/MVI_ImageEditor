@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -46,18 +45,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.mviimageeditor.model.CollectionModel
 import com.example.mviimageeditor.R
+import com.example.mviimageeditor.model.CollectionModel
 import com.example.mviimageeditor.nav.BaseView
-import com.example.mviimageeditor.nav.Screen
 import com.example.mviimageeditor.nav.LocalAppNavigator
+import com.example.mviimageeditor.nav.Screen
 import com.example.mviimageeditor.use
+import com.example.mviimageeditor.utils.reachedBottom
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
-import reachedBottom
 import kotlin.math.absoluteValue
 
 @Composable
@@ -67,6 +69,7 @@ fun HomeScreen(
 ) {
     val navigator = LocalAppNavigator.current
     val (state, event, effect) = use(homeViewModel)
+    val pagingState = homeViewModel.pagingDataFlow.collectAsLazyPagingItems()
     LaunchedEffect(key1 = Unit) {
         effect.collectLatest {
             when (it) {
@@ -82,7 +85,7 @@ fun HomeScreen(
         }
     }
     BaseView(innerPadding = innerPaddingValues, homeViewModel) {
-        HomeView(state, event)
+        HomeView(state, event, pagingState)
     }
 }
 
@@ -90,7 +93,8 @@ fun HomeScreen(
 fun HomeView(
     state: HomeContract.State,
     event: (HomeContract.Event) -> Unit,
-    modifier: Modifier = Modifier
+    pagingState: LazyPagingItems<CollectionModel>,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val lisState = rememberLazyListState()
@@ -104,18 +108,52 @@ fun HomeView(
             event(HomeContract.Event.OnLoadMore)
         }
     }
+
+
+//    LazyColumn(
+//        state = lisState,
+//        modifier = modifier
+//    ) {
+//        itemsIndexed(state.images ?: emptyList(), key = { index, item ->
+//            item.id
+//        }) { index, it ->
+//            ImageItem(item = it, context = context, onLikeImage = {
+//                event.invoke(HomeContract.Event.OnLikeImage(index))
+//            }, onViewDetail = {
+//                event.invoke(HomeContract.Event.OnViewDetail(it))
+//            })
+//        }
+//    }
+
     LazyColumn(
         state = lisState,
         modifier = modifier
     ) {
-        itemsIndexed(state.images ?: emptyList(), key = { index, item ->
-            item.id
-        }) { index, it ->
-            ImageItem(item = it, context = context, onLikeImage = {
-                event.invoke(HomeContract.Event.OnLikeImage(index))
-            }, onViewDetail = {
-                event.invoke(HomeContract.Event.OnViewDetail(it))
-            })
+        items(pagingState.itemCount, key = {
+            pagingState[it]?.id ?: -1
+        }) {
+            pagingState[it]?.let { it1 ->
+                ImageItem(item = it1, context = context, onLikeImage = {
+                    event.invoke(HomeContract.Event.OnLikeImage(it1))
+                }, onViewDetail = {
+                    event.invoke(HomeContract.Event.OnViewDetail(it))
+                })
+            }
+        }
+    }
+    pagingState.apply {
+        when {
+            loadState.refresh is LoadState.Loading -> {
+
+            }
+
+            loadState.append is LoadState.Loading -> {
+
+            }
+
+            loadState.append is LoadState.Error -> {
+
+            }
         }
     }
 
@@ -128,7 +166,7 @@ fun ImageItem(
     item: com.example.mviimageeditor.model.CollectionModel,
     context: Context,
     onLikeImage: () -> Unit,
-    onViewDetail: (String) -> Unit
+    onViewDetail: (String) -> Unit,
 ) {
     val photos = item.previewPhotos
     val pagerState = rememberPagerState(pageCount = { photos.size })
