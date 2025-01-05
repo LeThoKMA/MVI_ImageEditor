@@ -2,12 +2,9 @@ package com.example.mviimageeditor.ui.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,36 +12,31 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.Text
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.mviimageeditor.custom.GlideImageCustom
+import com.example.mviimageeditor.model.PhotoModel
 import com.example.mviimageeditor.nav.BaseView
 import com.example.mviimageeditor.nav.LocalAppNavigator
 import com.example.mviimageeditor.nav.Screen
@@ -59,6 +51,7 @@ fun SearchScreen(
 ) {
     val navigator = LocalAppNavigator.current
     val (state, event, effect) = use(viewModel = searchViewModel)
+    val pagingData = searchViewModel.pagingDataFlow.collectAsLazyPagingItems()
     LaunchedEffect(key1 = Unit) {
         effect.collectLatest {
             when (it) {
@@ -67,7 +60,6 @@ fun SearchScreen(
                 }
 
                 else -> {
-
                 }
             }
         }
@@ -75,44 +67,66 @@ fun SearchScreen(
     BackHandler {
         navigator.navigateBack()
     }
-    BaseView(innerPaddingValues, viewModel = searchViewModel) { SearchView(state, event) }
+    BaseView(innerPaddingValues, viewModel = searchViewModel) {
+        SearchView(
+            state,
+            event,
+            pagingData,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
-fun SearchView(state: SearchContract.State, event: (SearchContract.Event) -> Unit) {
+fun SearchView(
+    state: SearchContract.State,
+    event: (SearchContract.Event) -> Unit,
+    pagingData: LazyPagingItems<PhotoModel>,
+) {
     var query by remember { mutableStateOf("") }
-    var searchBarActive by remember { mutableStateOf(false) }
-    val stateGrid = rememberLazyGridState()
+    val stateGrid = rememberLazyGridState(pagingData.itemCount)
 
+    var expandSearchBar by rememberSaveable { mutableStateOf(false) }
     val onSearch: (String) -> Unit = {
         event(SearchContract.Event.OnSearch(it))
-        searchBarActive = false
+        expandSearchBar = false
     }
     val onClear: () -> Unit = {
         query = ""
     }
-    Column() {
+    Column {
         SearchBar(
-            query = query,
-            onQueryChange = { query = it },
-            onSearch = { onSearch(it) },
-            active = searchBarActive,
-            onActiveChange = { searchBarActive = it },
-            leadingIcon = {
-                Icon(Icons.Filled.Search, contentDescription = "search")
+            modifier =
+                Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            inputField = {
+                SearchBarDefaults.InputField(
+                    query = query,
+                    onQueryChange = { query = it },
+                    onExpandedChange = { expandSearchBar = it },
+                    onSearch = { onSearch(it) },
+                    expanded = expandSearchBar,
+                    leadingIcon = {
+                        Icon(Icons.Filled.Search, contentDescription = "search")
+                    },
+                    trailingIcon = {
+                        if (expandSearchBar) {
+                            Icon(
+                                Icons.Filled.Clear,
+                                contentDescription = "clear",
+                                modifier =
+                                    Modifier.clickable {
+                                        onClear()
+                                    },
+                            )
+                        }
+                    },
+                )
             },
-            trailingIcon = {
-                if (searchBarActive) Icon(
-                    Icons.Filled.Clear,
-                    contentDescription = "clear",
-                    modifier = Modifier.clickable {
-                        onClear()
-                    })
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
+            expanded = expandSearchBar,
+            onExpandedChange = { expandSearchBar = it },
         ) {
         }
 
@@ -121,23 +135,52 @@ fun SearchView(state: SearchContract.State, event: (SearchContract.Event) -> Uni
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             content = {
-                items(state.images ?: emptyList(), key = { item -> item.id }) {
+                items(pagingData.itemCount, key = pagingData.itemKey { it.id }) {
                     GlideImage(
-                        model = it.urls.regular,
-                        contentDescription = it.description,
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clickable {
+                                    event(SearchContract.Event.OnViewDetail(pagingData[it]?.urls?.regular))
+                                }.animateItem(),
+                        model = pagingData[it]?.urls?.regular,
+                        contentDescription = pagingData[it]?.description,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clickable {
-                                event(SearchContract.Event.OnViewDetail(it.urls.regular))
-                            }
                     )
+//                    GlideImageCustom(
+//                        url = pagingData[it]?.urls?.regular,
+//                        description = pagingData[it]?.description,
+//                        event = {
+//                            event(SearchContract.Event.OnViewDetail(pagingData[it]?.urls?.regular))
+//                        },
+//                    )
                 }
             },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 4.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = 4.dp),
         )
+        pagingData.apply {
+            when {
+                loadState.refresh is androidx.paging.LoadState.Loading -> {
+                    // You can add modifier to manage load state when first time response page
+                }
+
+                loadState.append is androidx.paging.LoadState.Loading -> {
+                    // You can add modifier to manage load state when next response page
+                }
+
+                loadState.append is androidx.paging.LoadState.Error -> {
+                    // You can use modifier to show error message
+                    println(" loadState.append is androidx.paging.LoadState.Error")
+                }
+
+                loadState.refresh is androidx.paging.LoadState.Error -> {
+                    println(" loadState.refresh is androidx.paging.LoadState.Error")
+                }
+            }
+        }
     }
 }

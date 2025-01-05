@@ -1,32 +1,9 @@
-import androidx.compose.foundation.lazy.LazyListState
 import com.example.mviimageeditor.utils.ACCESS_KEY
 import com.example.mviimageeditor.utils.REDIRECT_URI
 import com.example.mviimageeditor.utils.RESPONSE_TYPE
 import com.example.mviimageeditor.utils.SCOPE
 
-//package com.example.imageEditor2.utils
-//
-//import android.content.Context
-//import android.graphics.Bitmap
-//import android.graphics.BitmapFactory
-//import android.graphics.Canvas
-//import android.graphics.ColorFilter
-//import android.graphics.ColorMatrix
-//import android.graphics.ColorMatrixColorFilter
-//import android.graphics.drawable.BitmapDrawable
-//import android.graphics.drawable.Drawable
-//import android.text.SpannableString
-//import android.text.Spanned
-//import android.text.style.DrawableMarginSpan
-//import android.view.View
-//import android.widget.ImageView
-//import android.widget.TextView
-//import androidx.camera.core.ImageProxy
-//import androidx.core.graphics.drawable.toDrawable
-//import androidx.core.view.drawToBitmap
-//import androidx.emoji2.text.EmojiCompat
-//
-//fun setSpanForString(
+        //fun setSpanForString(
 //    text: String,
 //    drawable: Drawable,
 //): SpannableString {
@@ -128,17 +105,8 @@ import com.example.mviimageeditor.utils.SCOPE
 //    return colorFilters
 //}
 //
-fun authorizeUrl(): String {
-    return "https://unsplash.com/oauth/authorize" +
-            "?client_id=" + ACCESS_KEY +
-            "&redirect_uri=" + REDIRECT_URI +
-            "&response_type=" + RESPONSE_TYPE +
-            "&scope=" + SCOPE
-}
 
-fun String.toAuthorizationCode(): String {
-    return this.substring(this.indexOf('=') + 1)
-}
+
 //
 //fun emojiToDrawable(
 //    emoji: String,
@@ -195,8 +163,3 @@ fun String.toAuthorizationCode(): String {
 //fun Float.dpToPx(context: Context): Int {
 //    return (this * context.resources.displayMetrics.density).toInt()
 //}
-
-internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
-    val lastVisibleItem = this.layoutInfo.visibleItemsInfo.lastOrNull()
-    return lastVisibleItem?.index != 0 && lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
-}

@@ -1,19 +1,20 @@
 package com.example.mviimageeditor.ui.home
 
-import com.example.mviimageeditor.model.CollectionModel
+import androidx.paging.PagingData
 import com.example.mviimageeditor.ContractViewModel
+import com.example.mviimageeditor.model.CollectionModel
 
 interface HomeContract :
     ContractViewModel<HomeContract.State, HomeContract.Event, HomeContract.Effect> {
     data class State(
-        val images: List<com.example.mviimageeditor.model.CollectionModel>? = emptyList(),
-        val page: Int = 1
+        val images: PagingData<com.example.mviimageeditor.model.CollectionModel> = PagingData.empty(),
+        val page: Int = 1,
     )
 
     sealed class Event {
         data object OnLoadMore : Event()
 
-        data class OnLikeImage(val index: Int): Event()
+        data class OnLikeImage(val model: CollectionModel) : Event()
 
         data class OnViewDetail(val imageUrl: String) : Event()
     }

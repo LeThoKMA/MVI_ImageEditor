@@ -1,5 +1,6 @@
 package com.example.mviimageeditor.module
 
+import com.example.mviimageeditor.model.CollectionModel
 import com.example.mviimageeditor.model.PhotoModel
 import com.example.mviimageeditor.model.PhotoSearchModel
 import com.example.mviimageeditor.utils.COLLECTION_ENDPOINT
@@ -19,13 +20,12 @@ interface Api {
     @GET(COLLECTION_ENDPOINT)
     suspend fun getCollections(
         @Query(PAGE) page: Int,
-    ): List<com.example.mviimageeditor.model.CollectionModel>
+    ): List<CollectionModel>
 
     @GET(PHOTO_SEARCH_ENDPOINT)
     suspend fun searchPhotos(
         @Query(PAGE) page: Int,
         @Query(QUERY_SEARCH) querySearch: String,
-        @Query(PER_PAGE) perPage: Int = 10,
     ): PhotoSearchModel
 
     @POST("photos/{id}/like")

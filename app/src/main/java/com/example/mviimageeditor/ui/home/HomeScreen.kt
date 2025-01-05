@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -46,20 +45,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.mviimageeditor.model.CollectionModel
 import com.example.mviimageeditor.R
+import com.example.mviimageeditor.model.CollectionModel
 import com.example.mviimageeditor.nav.BaseView
-import com.example.mviimageeditor.nav.Screen
 import com.example.mviimageeditor.nav.LocalAppNavigator
+import com.example.mviimageeditor.nav.Screen
 import com.example.mviimageeditor.use
+import com.example.mviimageeditor.utils.reachedBottom
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
-import reachedBottom
 import kotlin.math.absoluteValue
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun HomeScreen(
     innerPaddingValues: PaddingValues,
@@ -67,6 +71,7 @@ fun HomeScreen(
 ) {
     val navigator = LocalAppNavigator.current
     val (state, event, effect) = use(homeViewModel)
+    val pagingState = homeViewModel.pagingDataFlow.collectAsLazyPagingItems()
     LaunchedEffect(key1 = Unit) {
         effect.collectLatest {
             when (it) {
@@ -75,14 +80,12 @@ fun HomeScreen(
                 }
 
                 else -> {
-
                 }
             }
-
         }
     }
     BaseView(innerPadding = innerPaddingValues, homeViewModel) {
-        HomeView(state, event)
+        HomeView(state, event, pagingState)
     }
 }
 
@@ -90,10 +93,11 @@ fun HomeScreen(
 fun HomeView(
     state: HomeContract.State,
     event: (HomeContract.Event) -> Unit,
-    modifier: Modifier = Modifier
+    pagingData: LazyPagingItems<CollectionModel>,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val lisState = rememberLazyListState()
+    val lisState = rememberLazyListState(pagingData.itemCount)
     val reachedBottom by remember {
         derivedStateOf {
             lisState.reachedBottom()
@@ -104,21 +108,33 @@ fun HomeView(
             event(HomeContract.Event.OnLoadMore)
         }
     }
+
     LazyColumn(
         state = lisState,
-        modifier = modifier
+        modifier = modifier,
     ) {
-        itemsIndexed(state.images ?: emptyList(), key = { index, item ->
-            item.id
-        }) { index, it ->
-            ImageItem(item = it, context = context, onLikeImage = {
-                event.invoke(HomeContract.Event.OnLikeImage(index))
-            }, onViewDetail = {
-                event.invoke(HomeContract.Event.OnViewDetail(it))
-            })
+        items(pagingData.itemCount, key = pagingData.itemKey { it.id }) {
+            pagingData[it]?.let { it1 ->
+                ImageItem(item = it1, context = context, onLikeImage = {
+                    event.invoke(HomeContract.Event.OnLikeImage(it1))
+                }, onViewDetail = {
+                    event.invoke(HomeContract.Event.OnViewDetail(it))
+                })
+            }
         }
     }
+    pagingData.apply {
+        when {
+            loadState.refresh is LoadState.Loading -> {
+            }
 
+            loadState.append is LoadState.Loading -> {
+            }
+
+            loadState.append is LoadState.Error -> {
+            }
+        }
+    }
 }
 
 @SuppressLint("StringFormatMatches")
@@ -128,15 +144,16 @@ fun ImageItem(
     item: com.example.mviimageeditor.model.CollectionModel,
     context: Context,
     onLikeImage: () -> Unit,
-    onViewDetail: (String) -> Unit
+    onViewDetail: (String) -> Unit,
 ) {
     val photos = item.previewPhotos
     val pagerState = rememberPagerState(pageCount = { photos.size })
-    val indicators = remember {
-        derivedStateOf {
-            pagerState.currentPage
+    val indicators =
+        remember {
+            derivedStateOf {
+                pagerState.currentPage
+            }
         }
-    }
     var isLike by rememberSaveable {
         mutableStateOf(item.isLiked)
     }
@@ -148,20 +165,21 @@ fun ImageItem(
 
     Row(
         modifier = Modifier.padding(top = 16.dp, start = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         GlideImage(
             item.user.profileImage.small,
             contentDescription = null,
-            modifier = Modifier
-                .size(32.dp)
-                .clip(
-                    CircleShape
-                )
+            modifier =
+                Modifier
+                    .size(32.dp)
+                    .clip(
+                        CircleShape,
+                    ),
         )
         Column(
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(start = 10.dp)
+            modifier = Modifier.padding(start = 10.dp),
         ) {
             Text(text = item.user.username)
             item.user.location?.let {
@@ -174,29 +192,33 @@ fun ImageItem(
         GlideImage(
             model = photos[page].urls.regular,
             contentDescription = "",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(375.dp)
-                .graphicsLayer {
-                    // Calculate the absolute offset for the current page from the
-                    // scroll position. We use the absolute value which allows us to mirror
-                    // any effects for both directions
-                    val pageOffset = (
-                            (pagerState.currentPage - page) + pagerState
-                                .currentPageOffsetFraction
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(375.dp)
+                    .graphicsLayer {
+                        // Calculate the absolute offset for the current page from the
+                        // scroll position. We use the absolute value which allows us to mirror
+                        // any effects for both directions
+                        val pageOffset =
+                            (
+                                (pagerState.currentPage - page) +
+                                    pagerState
+                                        .currentPageOffsetFraction
                             ).absoluteValue
 
-                    // We animate the alpha, between 50% and 100%
-                    alpha = lerp(
-                        start = 0.2f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
-                }
-                .clickable {
-                    onViewDetail(photos[page].urls.regular)
-                },
-            contentScale = ContentScale.Crop
+                        // We animate the alpha, between 50% and 100%
+                        alpha =
+                            lerp(
+                                start = 0.2f,
+                                stop = 1f,
+                                fraction = 1f - pageOffset.coerceIn(0f, 1f),
+                            )
+                    }
+                    .clickable {
+                        onViewDetail(photos[page].urls.regular)
+                    },
+            contentScale = ContentScale.Crop,
         )
     }
     Row(
@@ -204,18 +226,20 @@ fun ImageItem(
             .wrapContentHeight()
             .fillMaxWidth()
             .padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
     ) {
-        photos.forEachIndexed() { index, photo ->
+        photos.forEachIndexed { index, photo ->
             val color by animateColorAsState(
-                if (index == indicators.value) Color.DarkGray else Color.LightGray, label = ""
+                if (index == indicators.value) Color.DarkGray else Color.LightGray,
+                label = "",
             )
             Box(
-                modifier = Modifier
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .size(8.dp)
+                modifier =
+                    Modifier
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .size(8.dp),
             )
         }
     }
@@ -224,24 +248,25 @@ fun ImageItem(
         Icon(
             imageVector = if (!isLike) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
             contentDescription = "fav",
-            modifier = Modifier.clickable {
-                onLike()
-            }
+            modifier =
+                Modifier.clickable {
+                    onLike()
+                },
         )
 
         AndroidView(
             modifier = Modifier,
             factory = { MaterialTextView(it) },
             update = {
-                it.text = HtmlCompat.fromHtml(
-                    context.getString(
-                        R.string.liked_by_others,
-                        item.coverPhoto.likes,
-                    ),
-                    HtmlCompat.FROM_HTML_MODE_LEGACY,
-                )
-            }
+                it.text =
+                    HtmlCompat.fromHtml(
+                        context.getString(
+                            R.string.liked_by_others,
+                            item.coverPhoto.likes,
+                        ),
+                        HtmlCompat.FROM_HTML_MODE_LEGACY,
+                    )
+            },
         )
     }
-
 }

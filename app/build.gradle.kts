@@ -84,4 +84,11 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.compose)
     implementation(libs.androidx.constraintlayout.compose)
+
+    //paging3
+    implementation (libs.androidx.paging.runtime.ktx)
+    // alternatively - without Android dependencies for tests
+    testImplementation( libs.androidx.paging.common)
+    // optional - Jetpack Compose integration
+    implementation (libs.androidx.paging.compose)
 }

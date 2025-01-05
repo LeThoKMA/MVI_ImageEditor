@@ -36,7 +36,7 @@ data class CollectionModel(
     val updatedAt: String,
     @SerializedName("user")
     val user: com.example.mviimageeditor.model.User,
-    var isLiked: Boolean = false,
+    val isLiked: Boolean = false,
 ) {
     val descriptionTextShow
         get() =
