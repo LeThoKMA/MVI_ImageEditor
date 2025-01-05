@@ -1,7 +1,5 @@
 package com.example.mviimageeditor.ui.authorize
 
-import UtilsKt
-import UtilsKt.authorizeUrl
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -23,7 +21,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.example.mviimageeditor.MainActivity
 import com.example.mviimageeditor.ui.authorize.ui.theme.MVIImageEditorTheme
 import com.example.mviimageeditor.use
+import com.example.mviimageeditor.utils.ACCESS_KEY
 import com.example.mviimageeditor.utils.PREF_ACCESS_TOKEN
+import com.example.mviimageeditor.utils.REDIRECT_URI
+import com.example.mviimageeditor.utils.RESPONSE_TYPE
+import com.example.mviimageeditor.utils.SCOPE
 import com.example.mviimageeditor.utils.SIGN_OF_AUTHORIZE
 import com.example.mviimageeditor.utils.toAuthorizationCode
 import org.koin.androidx.compose.koinViewModel
@@ -82,11 +84,18 @@ fun AuthorizeScreen(
                         return false
                     }
                 }
-                loadUrl(UtilsKt.authorizeUrl())
+                loadUrl(authorizeUrl())
             }
         },
         update = { webView ->
             webView.loadUrl(authorizeUrl())
         }
     )
+}
+fun authorizeUrl(): String {
+    return "https://unsplash.com/oauth/authorize" +
+            "?client_id=" + ACCESS_KEY +
+            "&redirect_uri=" + REDIRECT_URI +
+            "&response_type=" + RESPONSE_TYPE +
+            "&scope=" + SCOPE
 }

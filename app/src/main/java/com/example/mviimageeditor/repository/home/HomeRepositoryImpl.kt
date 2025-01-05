@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 class HomeRepositoryImpl(private val api: Api) : HomeRepository {
     override suspend fun getCollections(): Flow<PagingData<com.example.mviimageeditor.model.CollectionModel>> {
         return withContext(Dispatchers.IO) {
-            Pager(PagingConfig(pageSize = 20)) {
+            Pager(PagingConfig(pageSize = 10)) {
                 CollectionPagingSource(api)
             }.flow
         }

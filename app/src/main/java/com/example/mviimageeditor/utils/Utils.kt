@@ -1,13 +1,9 @@
-import androidx.compose.foundation.lazy.LazyListState
 import com.example.mviimageeditor.utils.ACCESS_KEY
 import com.example.mviimageeditor.utils.REDIRECT_URI
 import com.example.mviimageeditor.utils.RESPONSE_TYPE
 import com.example.mviimageeditor.utils.SCOPE
 
-
-object UtilsKt {
-
-    //fun setSpanForString(
+        //fun setSpanForString(
 //    text: String,
 //    drawable: Drawable,
 //): SpannableString {
@@ -109,14 +105,7 @@ object UtilsKt {
 //    return colorFilters
 //}
 //
-    @JvmStatic
-    fun authorizeUrl(): String {
-        return "https://unsplash.com/oauth/authorize" +
-                "?client_id=" + ACCESS_KEY +
-                "&redirect_uri=" + REDIRECT_URI +
-                "&response_type=" + RESPONSE_TYPE +
-                "&scope=" + SCOPE
-    }
+
 
 //
 //fun emojiToDrawable(
@@ -174,4 +163,3 @@ object UtilsKt {
 //fun Float.dpToPx(context: Context): Int {
 //    return (this * context.resources.displayMetrics.density).toInt()
 //}
-}

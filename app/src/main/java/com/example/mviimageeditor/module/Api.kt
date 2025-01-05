@@ -26,7 +26,6 @@ interface Api {
     suspend fun searchPhotos(
         @Query(PAGE) page: Int,
         @Query(QUERY_SEARCH) querySearch: String,
-        @Query(PER_PAGE) perPage: Int = 10,
     ): PhotoSearchModel
 
     @POST("photos/{id}/like")

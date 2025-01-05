@@ -48,6 +48,7 @@ import androidx.core.text.HtmlCompat
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.mviimageeditor.R
@@ -62,6 +63,7 @@ import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.absoluteValue
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun HomeScreen(
     innerPaddingValues: PaddingValues,
@@ -78,10 +80,8 @@ fun HomeScreen(
                 }
 
                 else -> {
-
                 }
             }
-
         }
     }
     BaseView(innerPadding = innerPaddingValues, homeViewModel) {
@@ -93,11 +93,11 @@ fun HomeScreen(
 fun HomeView(
     state: HomeContract.State,
     event: (HomeContract.Event) -> Unit,
-    pagingState: LazyPagingItems<CollectionModel>,
+    pagingData: LazyPagingItems<CollectionModel>,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val lisState = rememberLazyListState()
+    val lisState = rememberLazyListState(pagingData.itemCount)
     val reachedBottom by remember {
         derivedStateOf {
             lisState.reachedBottom()
@@ -109,30 +109,12 @@ fun HomeView(
         }
     }
 
-
-//    LazyColumn(
-//        state = lisState,
-//        modifier = modifier
-//    ) {
-//        itemsIndexed(state.images ?: emptyList(), key = { index, item ->
-//            item.id
-//        }) { index, it ->
-//            ImageItem(item = it, context = context, onLikeImage = {
-//                event.invoke(HomeContract.Event.OnLikeImage(index))
-//            }, onViewDetail = {
-//                event.invoke(HomeContract.Event.OnViewDetail(it))
-//            })
-//        }
-//    }
-
     LazyColumn(
         state = lisState,
-        modifier = modifier
+        modifier = modifier,
     ) {
-        items(pagingState.itemCount, key = {
-            pagingState[it]?.id ?: -1
-        }) {
-            pagingState[it]?.let { it1 ->
+        items(pagingData.itemCount, key = pagingData.itemKey { it.id }) {
+            pagingData[it]?.let { it1 ->
                 ImageItem(item = it1, context = context, onLikeImage = {
                     event.invoke(HomeContract.Event.OnLikeImage(it1))
                 }, onViewDetail = {
@@ -141,22 +123,18 @@ fun HomeView(
             }
         }
     }
-    pagingState.apply {
+    pagingData.apply {
         when {
             loadState.refresh is LoadState.Loading -> {
-
             }
 
             loadState.append is LoadState.Loading -> {
-
             }
 
             loadState.append is LoadState.Error -> {
-
             }
         }
     }
-
 }
 
 @SuppressLint("StringFormatMatches")
@@ -170,11 +148,12 @@ fun ImageItem(
 ) {
     val photos = item.previewPhotos
     val pagerState = rememberPagerState(pageCount = { photos.size })
-    val indicators = remember {
-        derivedStateOf {
-            pagerState.currentPage
+    val indicators =
+        remember {
+            derivedStateOf {
+                pagerState.currentPage
+            }
         }
-    }
     var isLike by rememberSaveable {
         mutableStateOf(item.isLiked)
     }
@@ -186,20 +165,21 @@ fun ImageItem(
 
     Row(
         modifier = Modifier.padding(top = 16.dp, start = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         GlideImage(
             item.user.profileImage.small,
             contentDescription = null,
-            modifier = Modifier
-                .size(32.dp)
-                .clip(
-                    CircleShape
-                )
+            modifier =
+                Modifier
+                    .size(32.dp)
+                    .clip(
+                        CircleShape,
+                    ),
         )
         Column(
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(start = 10.dp)
+            modifier = Modifier.padding(start = 10.dp),
         ) {
             Text(text = item.user.username)
             item.user.location?.let {
@@ -212,29 +192,33 @@ fun ImageItem(
         GlideImage(
             model = photos[page].urls.regular,
             contentDescription = "",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(375.dp)
-                .graphicsLayer {
-                    // Calculate the absolute offset for the current page from the
-                    // scroll position. We use the absolute value which allows us to mirror
-                    // any effects for both directions
-                    val pageOffset = (
-                            (pagerState.currentPage - page) + pagerState
-                                .currentPageOffsetFraction
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(375.dp)
+                    .graphicsLayer {
+                        // Calculate the absolute offset for the current page from the
+                        // scroll position. We use the absolute value which allows us to mirror
+                        // any effects for both directions
+                        val pageOffset =
+                            (
+                                (pagerState.currentPage - page) +
+                                    pagerState
+                                        .currentPageOffsetFraction
                             ).absoluteValue
 
-                    // We animate the alpha, between 50% and 100%
-                    alpha = lerp(
-                        start = 0.2f,
-                        stop = 1f,
-                        fraction = 1f - pageOffset.coerceIn(0f, 1f)
-                    )
-                }
-                .clickable {
-                    onViewDetail(photos[page].urls.regular)
-                },
-            contentScale = ContentScale.Crop
+                        // We animate the alpha, between 50% and 100%
+                        alpha =
+                            lerp(
+                                start = 0.2f,
+                                stop = 1f,
+                                fraction = 1f - pageOffset.coerceIn(0f, 1f),
+                            )
+                    }
+                    .clickable {
+                        onViewDetail(photos[page].urls.regular)
+                    },
+            contentScale = ContentScale.Crop,
         )
     }
     Row(
@@ -242,18 +226,20 @@ fun ImageItem(
             .wrapContentHeight()
             .fillMaxWidth()
             .padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.Center,
     ) {
-        photos.forEachIndexed() { index, photo ->
+        photos.forEachIndexed { index, photo ->
             val color by animateColorAsState(
-                if (index == indicators.value) Color.DarkGray else Color.LightGray, label = ""
+                if (index == indicators.value) Color.DarkGray else Color.LightGray,
+                label = "",
             )
             Box(
-                modifier = Modifier
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .background(color)
-                    .size(8.dp)
+                modifier =
+                    Modifier
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .size(8.dp),
             )
         }
     }
@@ -262,24 +248,25 @@ fun ImageItem(
         Icon(
             imageVector = if (!isLike) Icons.Default.FavoriteBorder else Icons.Default.Favorite,
             contentDescription = "fav",
-            modifier = Modifier.clickable {
-                onLike()
-            }
+            modifier =
+                Modifier.clickable {
+                    onLike()
+                },
         )
 
         AndroidView(
             modifier = Modifier,
             factory = { MaterialTextView(it) },
             update = {
-                it.text = HtmlCompat.fromHtml(
-                    context.getString(
-                        R.string.liked_by_others,
-                        item.coverPhoto.likes,
-                    ),
-                    HtmlCompat.FROM_HTML_MODE_LEGACY,
-                )
-            }
+                it.text =
+                    HtmlCompat.fromHtml(
+                        context.getString(
+                            R.string.liked_by_others,
+                            item.coverPhoto.likes,
+                        ),
+                        HtmlCompat.FROM_HTML_MODE_LEGACY,
+                    )
+            },
         )
     }
-
 }

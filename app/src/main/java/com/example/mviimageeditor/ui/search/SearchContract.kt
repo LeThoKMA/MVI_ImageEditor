@@ -16,7 +16,7 @@ interface SearchContract :
         data object OnLoadMore : Event()
         data class OnSearch(val query: String) : Event()
 
-        data class OnViewDetail(val imageUrl: String) : Event()
+        data class OnViewDetail(val imageUrl: String?) : Event()
     }
 
     sealed class Effect {

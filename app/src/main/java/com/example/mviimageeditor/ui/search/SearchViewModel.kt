@@ -1,19 +1,21 @@
 package com.example.mviimageeditor.ui.search
 
 import androidx.lifecycle.viewModelScope
-import com.example.mviimageeditor.repository.search.SearchRepository
+import androidx.paging.cachedIn
 import com.example.mviimageeditor.BaseViewModel
+import com.example.mviimageeditor.repository.search.SearchRepository
+import com.example.mviimageeditor.utils.ALL
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
-class SearchViewModel(private val searchRepository: SearchRepository) : BaseViewModel(),
+@OptIn(ExperimentalCoroutinesApi::class)
+class SearchViewModel(private val searchRepository: SearchRepository) :
+    BaseViewModel(),
     SearchContract {
     private val _state = MutableStateFlow(SearchContract.State())
     private val _effect = MutableSharedFlow<SearchContract.Effect>()
@@ -22,73 +24,40 @@ class SearchViewModel(private val searchRepository: SearchRepository) : BaseView
     override val effect: SharedFlow<SearchContract.Effect>
         get() = _effect
 
+    private val querySearchState = MutableStateFlow(ALL)
+    val pagingDataFlow =
+        querySearchState
+            .flatMapLatest { searchRepository.searchPhotos(it) }
+            .cachedIn(viewModelScope) // Sử dụng cachedIn để lưu trữ dữ liệu phân trang.
+
     override fun event(event: SearchContract.Event) {
-        when (event) {
-            is SearchContract.Event.OnLoadMore -> {
-                onLoadMore()
-            }
-
-            is SearchContract.Event.OnSearch -> {
-                searchPhotos(event.query)
-            }
-
-            is SearchContract.Event.OnViewDetail -> {
-                navigateToDetail(event.imageUrl)
-            }
-
-            else -> {}
-        }
-    }
-
-    init {
-        fetchDataDefault()
-    }
-
-    private fun onLoadMore() {
         viewModelScope.launch {
-            _state.update { it.copy(page = it.page + 1) }
-            searchRepository.searchPhotos(_state.value.page, _state.value.query)
-                .catch { handleApiError(it) }
-                .collect { data ->
-                    _state.update {
-                        it.copy(images = it.images?.toMutableList().apply {
-                            this?.addAll(data.photoModels)
-                        })
-                    }
+            when (event) {
+                is SearchContract.Event.OnLoadMore -> {
                 }
-        }
-    }
 
-    private fun fetchDataDefault() {
-        viewModelScope.launch {
-            searchRepository.searchPhotos(_state.value.page, _state.value.query)
-                .catch { handleApiError(it) }
-                .collect { data ->
-                    _state.update {
-                        it.copy(images = data.photoModels)
-                    }
+                is SearchContract.Event.OnSearch -> {
+                    searchData(event.query)
                 }
-        }
-    }
 
-    private fun searchPhotos(query: String) {
-        viewModelScope.launch {
-            _state.update { it.copy(query = query, page = 1) }
-            searchRepository.searchPhotos(_state.value.page, _state.value.query)
-                .onStart { showLoading() }
-                .onCompletion { hideLoading() }
-                .catch { handleApiError(it) }
-                .collect { data ->
-                    _state.update {
-                        it.copy(images = data.photoModels)
-                    }
+                is SearchContract.Event.OnViewDetail -> {
+                    navigateToDetail(event.imageUrl)
                 }
+
+                else -> {}
+            }
         }
     }
 
-    private fun navigateToDetail(url: String) {
+    private suspend fun searchData(query: String) {
+        querySearchState.emit(query)
+    }
+
+    private fun navigateToDetail(url: String?) {
         viewModelScope.launch {
-            _effect.emit(SearchContract.Effect.OnViewDetail(url))
+            url?.let {
+                _effect.emit(SearchContract.Effect.OnViewDetail(it))
+            }
         }
     }
 }
