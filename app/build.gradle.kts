@@ -1,6 +1,3 @@
-import org.codehaus.groovy.runtime.DefaultGroovyMethods.each
-import org.jetbrains.kotlin.cfg.pseudocode.and
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -10,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.mviimageeditor"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.mviimageeditor"
@@ -30,7 +27,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -67,6 +64,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.material)
+    implementation(libs.androidx.palette.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -85,10 +83,20 @@ dependencies {
     implementation(libs.compose)
     implementation(libs.androidx.constraintlayout.compose)
 
-    //paging3
-    implementation (libs.androidx.paging.runtime.ktx)
+    // paging3
+    implementation(libs.androidx.paging.runtime.ktx)
     // alternatively - without Android dependencies for tests
-    testImplementation( libs.androidx.paging.common)
+    testImplementation(libs.androidx.paging.common)
     // optional - Jetpack Compose integration
-    implementation (libs.androidx.paging.compose)
+    implementation(libs.androidx.paging.compose)
+
+    implementation(libs.coil.compose)
+
+    implementation(libs.accompanist.drawablepainter)
+// optional - Paging 3 Integration
+    implementation(libs.androidx.room.paging)
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 }
