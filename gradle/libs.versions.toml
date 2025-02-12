@@ -1,6 +1,6 @@
 [versions]
 accompanistDrawablepainter = "0.37.0"
-agp = "8.4.2"
+agp = "8.8.0"
 coilCompose = "3.0.4"
 compose = "1.0.0-beta01"
 constraintlayoutCompose = "1.1.0"
@@ -70,4 +70,5 @@ androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", versi
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrainsKotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 

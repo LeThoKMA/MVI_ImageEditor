@@ -10,5 +10,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "imgEdt-database",
-        ).build()
+        ).fallbackToDestructiveMigration().build()
+
+    internal fun provideCollectionDao(db: AppDatabase) = db.collectionDao()
 }

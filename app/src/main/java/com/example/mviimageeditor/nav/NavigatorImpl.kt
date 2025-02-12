@@ -3,7 +3,9 @@ package com.example.mviimageeditor.nav
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 
-class NavigatorImpl(private val navController: NavController) : Navigator {
+class NavigatorImpl(
+    private val navController: NavController,
+) : Navigator {
     override fun navigate(screen: Screen) {
         navController.navigate(screen) {
             popUpTo(navController.graph.findStartDestination().id) {

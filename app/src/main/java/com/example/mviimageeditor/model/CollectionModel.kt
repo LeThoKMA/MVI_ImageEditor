@@ -14,13 +14,14 @@ data class CollectionModel(
     @SerializedName("description")
     val description: String?,
     @SerializedName("id")
-    @PrimaryKey
     val id: String,
     @SerializedName("preview_photos")
     val previewPhotos: List<PreviewPhoto>,
     @SerializedName("user")
     val user: User,
     val isLiked: Boolean = false,
+    @PrimaryKey(autoGenerate = true)
+    val idLocal: Int = 0,
 ) {
     val descriptionTextShow
         get() =

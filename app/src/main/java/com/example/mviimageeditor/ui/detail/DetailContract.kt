@@ -28,6 +28,7 @@ interface DetailContract : ContractViewModel<DetailContract.State, DetailContrac
         val selectedColor: Color = Color.Red,
         val pathList: MutableList<DrawPath> = mutableListOf(DrawPath(Path(), Color.Red)),
         val imageCrop: BitmapPainter? = null,
+        val imgDest: Any? = null,
         val colorFilters: List<ColorFilter> = listOf(),
     )
 

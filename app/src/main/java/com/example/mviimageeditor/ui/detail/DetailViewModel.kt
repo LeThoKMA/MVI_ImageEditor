@@ -43,7 +43,7 @@ class DetailViewModel(
     init {
         savedStateHandle.toRoute<Screen.Details>().image?.let { url ->
             _state.update {
-                it.copy(imageUrl = url)
+                it.copy(imageUrl = url, imgDest = url)
             }
         }
     }
@@ -88,7 +88,7 @@ class DetailViewModel(
                     IntSize(width, height),
                 )
             _state.update {
-                it.copy(imageCrop = imageCrop, editState = EditState.DONE)
+                it.copy(imageCrop = imageCrop, editState = EditState.DONE, imgDest = imageCrop)
             }
         }
     }

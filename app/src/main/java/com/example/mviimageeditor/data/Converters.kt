@@ -6,6 +6,7 @@ import com.example.mviimageeditor.model.PreviewPhoto
 import com.example.mviimageeditor.model.Urls
 import com.example.mviimageeditor.model.User
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class Converters {
     private val gson = Gson()
@@ -33,4 +34,13 @@ class Converters {
 
     @TypeConverter
     fun toCoverPhoto(json: String): CoverPhoto = gson.fromJson(json, CoverPhoto::class.java)
+
+    @TypeConverter
+    fun fromPreviewPhotoList(value: List<PreviewPhoto>?): String = gson.toJson(value)
+
+    @TypeConverter
+    fun toPreviewPhotoList(value: String): List<PreviewPhoto> {
+        val type = object : TypeToken<List<PreviewPhoto>>() {}.type
+        return gson.fromJson(value, type) ?: emptyList()
+    }
 }

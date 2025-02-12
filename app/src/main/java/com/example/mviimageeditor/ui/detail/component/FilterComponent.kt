@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -22,7 +24,7 @@ import com.bumptech.glide.integration.compose.GlideImage
 @Composable
 fun ImageFilterList(
     modifier: Modifier = Modifier,
-    imageSource: Any,
+    imageSource: Any?,
     colorFilters: List<ColorFilter>,
     onFilterSelected: (ColorFilter) -> Unit,
 ) {
@@ -31,7 +33,12 @@ fun ImageFilterList(
             .size(128.dp)
             .clip(RoundedCornerShape(16.dp))
 
-    LazyRow(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyRow(
+        modifier
+            .padding(bottom = 16.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         items(colorFilters) {
             if (imageSource is BitmapPainter) {
                 Image(
@@ -44,19 +51,20 @@ fun ImageFilterList(
                             onFilterSelected.invoke(it)
                         },
                 )
-            }
-            Box(
-                modifier =
-                    imageModifier.clickable {
-                        onFilterSelected(it)
-                    },
-            ) {
-                GlideImage(
-                    model = imageSource,
-                    contentDescription = "",
-                    colorFilter = it,
-                    contentScale = ContentScale.Crop,
-                )
+            } else {
+                Box(
+                    modifier =
+                        imageModifier.clickable {
+                            onFilterSelected(it)
+                        },
+                ) {
+                    GlideImage(
+                        model = imageSource,
+                        contentDescription = "",
+                        colorFilter = it,
+                        contentScale = ContentScale.Crop,
+                    )
+                }
             }
         }
     }
