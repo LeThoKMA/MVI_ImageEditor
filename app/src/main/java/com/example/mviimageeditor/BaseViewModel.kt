@@ -14,7 +14,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import javax.net.ssl.HttpsURLConnection
 
-abstract class BaseViewModel() : ViewModel() {
+abstract class BaseViewModel : ViewModel() {
     private val _baseSate = MutableStateFlow(State())
     private val _baseEffect = MutableSharedFlow<Effect>()
     val baseState: StateFlow<State>
@@ -26,7 +26,7 @@ abstract class BaseViewModel() : ViewModel() {
     protected fun showLoading() {
         _baseSate.update {
             it.copy(
-                isLoading = true
+                isLoading = true,
             )
         }
     }
@@ -34,7 +34,7 @@ abstract class BaseViewModel() : ViewModel() {
     protected fun hideLoading() {
         _baseSate.update {
             it.copy(
-                isLoading = false
+                isLoading = false,
             )
         }
     }
@@ -68,7 +68,6 @@ abstract class BaseViewModel() : ViewModel() {
                             it.copy(errorMessage = "Bạn không có quyền truy cập")
                         }
                         _baseEffect.emit(Effect.OnErrorAuthorize)
-
                     }
 
                     HttpsURLConnection.HTTP_FORBIDDEN, HttpsURLConnection.HTTP_INTERNAL_ERROR, HttpsURLConnection.HTTP_NOT_FOUND ->
@@ -76,9 +75,10 @@ abstract class BaseViewModel() : ViewModel() {
                             it.copy(responseMessage = error.message())
                         }
 
-                    else -> _baseSate.update {
-                        it.copy(responseMessage = error.message())
-                    }
+                    else ->
+                        _baseSate.update {
+                            it.copy(responseMessage = error.message())
+                        }
                 }
             } else if (error is IOException) {
                 Log.e("TAG", error.message.toString())
@@ -92,11 +92,14 @@ abstract class BaseViewModel() : ViewModel() {
     data class State(
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
-        val responseMessage: String? = null
+        val responseMessage: String? = null,
     )
 
     sealed class Effect {
         data object OnErrorAuthorize : Effect()
-        data class ShowToast(val message: String) : Effect()
+
+        data class ShowToast(
+            val message: String,
+        ) : Effect()
     }
 }

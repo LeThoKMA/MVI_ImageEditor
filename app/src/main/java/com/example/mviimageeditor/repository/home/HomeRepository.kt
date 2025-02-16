@@ -1,4 +1,4 @@
-package com.example.imageEditor2.repository.home
+package com.example.mviimageeditor.repository.home
 
 import androidx.paging.PagingData
 import com.example.mviimageeditor.model.CollectionModel

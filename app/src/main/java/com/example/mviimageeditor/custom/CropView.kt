@@ -46,33 +46,33 @@ fun CropView(
     modifier: Modifier,
     defaultWidth: Dp,
     defaultHeight: Dp,
+    quadSize: Dp = 60.dp,
+    strokeWidth: Float = 10f,
     onCropDone: (Offset, Offset) -> Unit,
 ) {
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
-    val quadSize = remember {
-        60.dp
-    }
-    val strokeWidth = remember {
-        10f
-    }
 
-    val screenHeightPx = remember {
-        with(density) {
-            configuration.screenHeightDp.dp.toPx()
+    val screenHeightPx =
+        remember {
+            with(density) {
+                configuration.screenHeightDp.dp.toPx()
+            }
         }
-    }
-    val screenWidthPx = remember {
-        with(density) {
-            configuration.screenWidthDp.dp.toPx()
+    val screenWidthPx =
+        remember {
+            with(density) {
+                configuration.screenWidthDp.dp.toPx()
+            }
         }
-    }
-    val anchorWidth = remember {
-        quadSize.value.plus(2)
-    }
-    val anchorHeight = remember {
-        quadSize.value.plus(2)
-    }
+    val anchorWidth =
+        remember {
+            quadSize.value.plus(2)
+        }
+    val anchorHeight =
+        remember {
+            quadSize.value.plus(2)
+        }
     var topLeftOffsetX by remember {
         mutableFloatStateOf(0f)
     }
@@ -97,296 +97,313 @@ fun CropView(
         mutableStateOf(true)
     }
 
-    val onDragTopRight = remember<(Offset) -> Unit> {
-        {
-            val tmpPositionX = positionBottomRight.x + it.x
-            val tmpPositionY = positionTopLeft.y + it.y
+    val onDragTopRight =
+        remember<(Offset) -> Unit> {
+            {
+                val tmpPositionX = positionBottomRight.x + it.x
+                val tmpPositionY = positionTopLeft.y + it.y
 
-            if (abs(tmpPositionX - positionTopLeft.x) >= anchorWidth && tmpPositionX <= screenWidthPx) {
-                bottomRightOffsetX += it.x
-            }
-            if (abs(tmpPositionY - positionBottomRight.y) >= anchorHeight && tmpPositionY >= 0) {
-                topLeftOffsetY += it.y
-            }
-        }
-    }
-    val onDragTopLeft = remember<(Offset) -> Unit> {
-        {
-            val tmpPositionTopLeft = positionTopLeft + it
-            if (abs(tmpPositionTopLeft.x - positionBottomRight.x) >= anchorWidth && tmpPositionTopLeft.x >= 0) {
-                topLeftOffsetX += it.x
-            }
-            if (abs(tmpPositionTopLeft.y - positionBottomRight.y) >= anchorHeight && tmpPositionTopLeft.y >= 0) {
-                topLeftOffsetY += it.y
+                if (abs(tmpPositionX - positionTopLeft.x) >= anchorWidth && tmpPositionX <= screenWidthPx) {
+                    bottomRightOffsetX += it.x
+                }
+                if (abs(tmpPositionY - positionBottomRight.y) >= anchorHeight && tmpPositionY >= 0) {
+                    topLeftOffsetY += it.y
+                }
             }
         }
-    }
+    val onDragTopLeft =
+        remember<(Offset) -> Unit> {
+            {
+                val tmpPositionTopLeft = positionTopLeft + it
+                if (abs(tmpPositionTopLeft.x - positionBottomRight.x) >= anchorWidth && tmpPositionTopLeft.x >= 0) {
+                    topLeftOffsetX += it.x
+                }
+                if (abs(tmpPositionTopLeft.y - positionBottomRight.y) >= anchorHeight && tmpPositionTopLeft.y >= 0) {
+                    topLeftOffsetY += it.y
+                }
+            }
+        }
 
-    val onDragBottomLeft = remember<(Offset) -> Unit> {
-        {
-            val tmpPositionX = positionTopLeft.x + it.x
-            val tmpPositionY = positionBottomRight.y + it.y
-            if (abs(tmpPositionX - positionBottomRight.x) >= anchorWidth && tmpPositionX >= 0) {
-                topLeftOffsetX += it.x
-            }
-            if (abs(tmpPositionY - positionTopLeft.y) >= anchorHeight && tmpPositionY <= screenHeightPx) {
-                bottomRightOffsetY += it.y
-            }
-        }
-    }
-    val onDragBottomRight = remember<(Offset) -> Unit> {
-        {
-            val tmpPositionBottomRight = positionBottomRight + it
-            if (abs(tmpPositionBottomRight.x - positionTopLeft.x) >= anchorWidth && tmpPositionBottomRight.x <= screenWidthPx) {
-                bottomRightOffsetX += it.x
-            }
-            if (abs(tmpPositionBottomRight.y - positionTopLeft.y) >= anchorHeight && tmpPositionBottomRight.y <= screenHeightPx) {
-                bottomRightOffsetY += it.y
+    val onDragBottomLeft =
+        remember<(Offset) -> Unit> {
+            {
+                val tmpPositionX = positionTopLeft.x + it.x
+                val tmpPositionY = positionBottomRight.y + it.y
+                if (abs(tmpPositionX - positionBottomRight.x) >= anchorWidth && tmpPositionX >= 0) {
+                    topLeftOffsetX += it.x
+                }
+                if (abs(tmpPositionY - positionTopLeft.y) >= anchorHeight && tmpPositionY <= screenHeightPx) {
+                    bottomRightOffsetY += it.y
+                }
             }
         }
-    }
+    val onDragBottomRight =
+        remember<(Offset) -> Unit> {
+            {
+                val tmpPositionBottomRight = positionBottomRight + it
+                if (abs(tmpPositionBottomRight.x - positionTopLeft.x) >= anchorWidth && tmpPositionBottomRight.x <= screenWidthPx) {
+                    bottomRightOffsetX += it.x
+                }
+                if (abs(tmpPositionBottomRight.y - positionTopLeft.y) >= anchorHeight && tmpPositionBottomRight.y <= screenHeightPx) {
+                    bottomRightOffsetY += it.y
+                }
+            }
+        }
 
     Box(
-        modifier = modifier
+        modifier = modifier,
     ) {
-        if (isVisibleDoneText) Text(text = "DONE", modifier = Modifier
-            .align(Alignment.TopEnd)
-            .clickable {
-                onCropDone.invoke(positionTopLeft, positionBottomRight)
-            })
+        if (isVisibleDoneText) {
+            Text(
+                text = "DONE",
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .clickable {
+                            onCropDone.invoke(positionTopLeft, positionBottomRight)
+                        },
+            )
+        }
         Canvas(
-            modifier = Modifier
-                .padding(top = defaultHeight, start = defaultWidth)
-                .size(quadSize)
-                .align(Alignment.TopStart)
-                .zIndex(2f)
-                .offset {
-                    IntOffset(topLeftOffsetX.roundToInt(), topLeftOffsetY.roundToInt())
-                }
-                .onGloballyPositioned {
-                    positionTopLeft = it
-                        .positionInParent()
-                        .plus(Offset(strokeWidth, strokeWidth))
-                }
-                .pointerInput(key1 = onDragTopLeft) {
-                    detectDragGestures(
-                        onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                            change.consume()
-                            onDragTopLeft.invoke(dragAmount)
-                        },
-                        onDragEnd = {
-                            isVisibleDoneText = true
-                        },
-                        onDragStart = {
-                            isVisibleDoneText = false
-                        }
-                    )
-                }
+            modifier =
+                Modifier
+                    .padding(top = defaultHeight, start = defaultWidth)
+                    .size(quadSize)
+                    .align(Alignment.TopStart)
+                    .zIndex(2f)
+                    .offset {
+                        IntOffset(topLeftOffsetX.roundToInt(), topLeftOffsetY.roundToInt())
+                    }.onGloballyPositioned {
+                        positionTopLeft =
+                            it
+                                .positionInParent()
+                                .plus(Offset(strokeWidth, strokeWidth))
+                    }.pointerInput(key1 = onDragTopLeft) {
+                        detectDragGestures(
+                            onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                                change.consume()
+                                onDragTopLeft.invoke(dragAmount)
+                            },
+                            onDragEnd = {
+                                isVisibleDoneText = true
+                            },
+                            onDragStart = {
+                                isVisibleDoneText = false
+                            },
+                        )
+                    },
         ) {
             val width = size.width
             val height = size.height
-            val path = Path().apply {
-                moveTo(0f, height.div(2))  // Điểm bắt đầu của đường đầu tiên
-                lineTo(0f, 10f)  // Đường ngang đầu tiên
-                quadraticTo(0f, 0f, 10f, 0f) // Đường cong Bézier để tạo bo góc
-                lineTo(width.div(2), 0f)  // Đường thẳng đứng thứ hai
-            }
+            val path =
+                Path().apply {
+                    moveTo(0f, height.div(2)) // Điểm bắt đầu của đường đầu tiên
+                    lineTo(0f, 10f) // Đường ngang đầu tiên
+                    quadraticTo(0f, 0f, 10f, 0f) // Đường cong Bézier để tạo bo góc
+                    lineTo(width.div(2), 0f) // Đường thẳng đứng thứ hai
+                }
 
             drawPath(
                 path = path,
                 color = Color.Black,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round
-                )
+                style =
+                    Stroke(
+                        width = strokeWidth,
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    ),
             )
         }
         Canvas(
-            modifier = Modifier
-                .padding(top = defaultHeight, end = defaultWidth)
-                .size(quadSize)
-                .align(Alignment.TopEnd)
-                .zIndex(2f)
-                .offset {
-                    IntOffset(
-                        bottomRightOffsetX.roundToInt(),
-                        topLeftOffsetY.roundToInt()
-                    )
-                }
-                .pointerInput(key1 = onDragTopRight) {
-                    detectDragGestures(
-                        onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                            onDragTopRight.invoke(dragAmount)
-                        },
-                        onDragEnd = {
-                            isVisibleDoneText = true
-                        },
-                        onDragStart = {
-                            isVisibleDoneText = false
-                        }
-                    )
-                }
+            modifier =
+                Modifier
+                    .padding(top = defaultHeight, end = defaultWidth)
+                    .size(quadSize)
+                    .align(Alignment.TopEnd)
+                    .zIndex(2f)
+                    .offset {
+                        IntOffset(
+                            bottomRightOffsetX.roundToInt(),
+                            topLeftOffsetY.roundToInt(),
+                        )
+                    }.pointerInput(key1 = onDragTopRight) {
+                        detectDragGestures(
+                            onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                                onDragTopRight.invoke(dragAmount)
+                            },
+                            onDragEnd = {
+                                isVisibleDoneText = true
+                            },
+                            onDragStart = {
+                                isVisibleDoneText = false
+                            },
+                        )
+                    },
         ) {
             val width = size.width
             val height = size.height
-            val path = Path().apply {
-                moveTo(width.div(2), 0f)  // Điểm bắt đầu của đường đầu tiên
-                lineTo(width - 10f, 0f)  // Đường ngang đầu tiên
-                quadraticTo(
-                    width,
-                    0f,
-                    width,
-                    10f
-                ) // Đường cong Bézier để tạo bo góc
-                lineTo(width, height.div(2))  // Đường thẳng đứng thứ hai
-            }
+            val path =
+                Path().apply {
+                    moveTo(width.div(2), 0f) // Điểm bắt đầu của đường đầu tiên
+                    lineTo(width - 10f, 0f) // Đường ngang đầu tiên
+                    quadraticTo(
+                        width,
+                        0f,
+                        width,
+                        10f,
+                    ) // Đường cong Bézier để tạo bo góc
+                    lineTo(width, height.div(2)) // Đường thẳng đứng thứ hai
+                }
 
             drawPath(
                 path = path,
                 color = Color.Black,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round
-                )
+                style =
+                    Stroke(
+                        width = strokeWidth,
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    ),
             )
         }
 
-
         Canvas(
-            modifier = Modifier
-                .padding(bottom = defaultHeight, end = defaultWidth)
-                .size(quadSize)
-                .align(Alignment.BottomEnd)
-                .zIndex(2f)
-                .offset {
-                    IntOffset(
-                        bottomRightOffsetX.roundToInt(),
-                        bottomRightOffsetY.roundToInt()
-                    )
-                }
-                .onGloballyPositioned {
-                    val topLeftPoint = it.positionInParent()
-                    positionBottomRight = Offset(
-                        topLeftPoint.x + it.size.width,
-                        topLeftPoint.y + it.size.height
-                    ).minus(Offset(strokeWidth, strokeWidth))
-                }
-                .pointerInput(key1 = onDragBottomRight) {
-                    detectDragGestures(
-                        onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                            onDragBottomRight.invoke(dragAmount)
-                        },
-                        onDragEnd = {
-                            isVisibleDoneText = true
-                        },
-                        onDragStart = {
-                            isVisibleDoneText = false
-                        }
-                    )
-                }
+            modifier =
+                Modifier
+                    .padding(bottom = defaultHeight, end = defaultWidth)
+                    .size(quadSize)
+                    .align(Alignment.BottomEnd)
+                    .zIndex(2f)
+                    .offset {
+                        IntOffset(
+                            bottomRightOffsetX.roundToInt(),
+                            bottomRightOffsetY.roundToInt(),
+                        )
+                    }.onGloballyPositioned {
+                        val topLeftPoint = it.positionInParent()
+                        positionBottomRight =
+                            Offset(
+                                topLeftPoint.x + it.size.width,
+                                topLeftPoint.y + it.size.height,
+                            ).minus(Offset(strokeWidth, strokeWidth))
+                    }.pointerInput(key1 = onDragBottomRight) {
+                        detectDragGestures(
+                            onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                                onDragBottomRight.invoke(dragAmount)
+                            },
+                            onDragEnd = {
+                                isVisibleDoneText = true
+                            },
+                            onDragStart = {
+                                isVisibleDoneText = false
+                            },
+                        )
+                    },
         ) {
             val width = size.width
             val height = size.height
-            val path = Path().apply {
-                moveTo(width.div(2), height)  // Điểm bắt đầu của đường đầu tiên
-                lineTo(width - 10f, height)  // Đường ngang đầu tiên
-                quadraticTo(
-                    width,
-                    height,
-                    width,
-                    height - 10f
-                ) // Đường cong Bézier để tạo bo góc
-                lineTo(width, height.div(2))  // Đường thẳng đứng thứ hai
-            }
+            val path =
+                Path().apply {
+                    moveTo(width.div(2), height) // Điểm bắt đầu của đường đầu tiên
+                    lineTo(width - 10f, height) // Đường ngang đầu tiên
+                    quadraticTo(
+                        width,
+                        height,
+                        width,
+                        height - 10f,
+                    ) // Đường cong Bézier để tạo bo góc
+                    lineTo(width, height.div(2)) // Đường thẳng đứng thứ hai
+                }
 
             drawPath(
                 path = path,
                 color = Color.Black,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round
-                )
+                style =
+                    Stroke(
+                        width = strokeWidth,
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    ),
             )
         }
 
         Canvas(
-            modifier = Modifier
-                .padding(bottom = defaultHeight, start = defaultWidth)
-                .size(quadSize)
-                .align(Alignment.BottomStart)
-                .zIndex(2f)
-                .offset {
-                    IntOffset(
-                        topLeftOffsetX.roundToInt(),
-                        bottomRightOffsetY.roundToInt()
-                    )
-                }
-                .pointerInput(key1 = onDragBottomLeft) {
-                    detectDragGestures(
-                        onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                            onDragBottomLeft.invoke(dragAmount)
-                        },
-                        onDragEnd = {
-                            isVisibleDoneText = true
-                        },
-                        onDragStart = {
-                            isVisibleDoneText = false
-                        }
-                    )
-                }
+            modifier =
+                Modifier
+                    .padding(bottom = defaultHeight, start = defaultWidth)
+                    .size(quadSize)
+                    .align(Alignment.BottomStart)
+                    .zIndex(2f)
+                    .offset {
+                        IntOffset(
+                            topLeftOffsetX.roundToInt(),
+                            bottomRightOffsetY.roundToInt(),
+                        )
+                    }.pointerInput(key1 = onDragBottomLeft) {
+                        detectDragGestures(
+                            onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                                onDragBottomLeft.invoke(dragAmount)
+                            },
+                            onDragEnd = {
+                                isVisibleDoneText = true
+                            },
+                            onDragStart = {
+                                isVisibleDoneText = false
+                            },
+                        )
+                    },
         ) {
             val partWidth = size.width.div(2)
             val partHeight = size.height.div(2)
-            val path = Path().apply {
-                moveTo(0f, partHeight)  // Điểm bắt đầu của đường đầu tiên
-                lineTo(0f, size.height - 10f)  // Đường ngang đầu tiên
-                quadraticTo(
-                    0f,
-                    size.height,
-                    10f,
-                    size.height
-                ) // Đường cong Bézier để tạo bo góc
-                lineTo(partWidth, size.height)  // Đường thẳng đứng thứ hai
-            }
+            val path =
+                Path().apply {
+                    moveTo(0f, partHeight) // Điểm bắt đầu của đường đầu tiên
+                    lineTo(0f, size.height - 10f) // Đường ngang đầu tiên
+                    quadraticTo(
+                        0f,
+                        size.height,
+                        10f,
+                        size.height,
+                    ) // Đường cong Bézier để tạo bo góc
+                    lineTo(partWidth, size.height) // Đường thẳng đứng thứ hai
+                }
 
             drawPath(
                 path = path,
                 color = Color.Black,
-                style = Stroke(
-                    width = strokeWidth,
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round
-                )
+                style =
+                    Stroke(
+                        width = strokeWidth,
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round,
+                    ),
             )
         }
-        Canvas(modifier = Modifier
-            .fillMaxSize()
-            .graphicsLayer {
-                compositingStrategy = CompositingStrategy.Offscreen
-            }
-            .zIndex(1f)) {
+        Canvas(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        compositingStrategy = CompositingStrategy.Offscreen
+                    }.zIndex(1f),
+        ) {
             // Vẽ nền ngoài hình chữ nhật
-            val clipPath = Path().apply {
-                addRect(
-                    androidx.compose.ui.geometry.Rect(
-                        topLeft = positionTopLeft,
-                        bottomRight = positionBottomRight,
+            val clipPath =
+                Path().apply {
+                    addRect(
+                        androidx.compose.ui.geometry.Rect(
+                            topLeft = positionTopLeft,
+                            bottomRight = positionBottomRight,
+                        ),
                     )
-                )
-            }
+                }
             // Cắt bỏ phần hình chữ nhật
             clipPath(clipPath, clipOp = ClipOp.Difference) {
                 drawRect(
                     color = TransGray, // Màu nền ngoài
-                    size = size
+                    size = size,
                 )
             }
         }
     }
 }
-
-
-
