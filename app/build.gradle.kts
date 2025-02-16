@@ -100,4 +100,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+
+    // Leak-canary
+    debugImplementation(libs.squareup.leakcanary.android)
 }

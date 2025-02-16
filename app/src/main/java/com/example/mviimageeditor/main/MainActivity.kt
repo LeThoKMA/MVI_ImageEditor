@@ -24,10 +24,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.mviimageeditor.nav.BottomNavigationItem
@@ -48,40 +49,20 @@ class MainActivity : ComponentActivity() {
         requestPermission()
         setContent {
             MVIImageEditorTheme {
+                val scope = rememberCoroutineScope()
                 var navItemSelected by remember { mutableIntStateOf(0) }
                 val navController = rememberNavController()
-                val isShowBottomBar =
-                    remember(navController) {
-                        when (navController.currentDestination?.route) {
-                            Screen.BottomNav.Home
-                                .serializer()
-                                .descriptor.serialName,
-                            Screen.BottomNav.Search
-                                .serializer()
-                                .descriptor.serialName,
-                            Screen.BottomNav.Create
-                                .serializer()
-                                .descriptor.serialName,
-                            Screen.BottomNav.Favourites
-                                .serializer()
-                                .descriptor.serialName,
-                            -> true
-
-                            else -> false
-                        }
+                val navigator =
+                    remember {
+                        NavigatorImpl(navController, scope)
                     }
+                val isShowBottomBar by navigator.isShowBottomBar.collectAsStateWithLifecycle()
 
                 val navSelectedCallBack =
                     remember<(Int, BottomNavigationItem) -> Unit> {
                         { index, bottomNavItem ->
                             navItemSelected = index
-                            navController.navigate(bottomNavItem.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navigator.navigate(bottomNavItem.route)
                         }
                     }
                 Scaffold(
@@ -118,7 +99,7 @@ class MainActivity : ComponentActivity() {
                     },
                 ) { innerPadding ->
                     CompositionLocalProvider(
-                        LocalAppNavigator provides NavigatorImpl(navController),
+                        LocalAppNavigator provides navigator,
                     ) {
                         NavHost(
                             navController = navController,
