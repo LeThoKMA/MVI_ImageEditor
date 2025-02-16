@@ -39,7 +39,7 @@ fun BaseView(
     LaunchedEffect(key1 = Unit) {
         viewModel.baseEffect.collect {
             when (it) {
-                is BaseViewModel.Effect.OnErrorAuthorize -> {
+                is BaseViewModel.BaseEffect.OnErrorAuthorize -> {
                     MyPreference(context).deleteToken()
                     context.startActivity(Intent(context, AuthorizeActivity::class.java))
                 }

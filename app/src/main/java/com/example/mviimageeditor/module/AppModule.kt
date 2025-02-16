@@ -15,6 +15,7 @@ import com.example.mviimageeditor.repository.home.HomeRepositoryImpl
 import com.example.mviimageeditor.repository.search.SearchRepository
 import com.example.mviimageeditor.repository.search.SearchRepositoryImpl
 import com.example.mviimageeditor.ui.authorize.AuthorizeViewModel
+import com.example.mviimageeditor.ui.create.CaptureImageViewmodel
 import com.example.mviimageeditor.ui.detail.DetailViewModel
 import com.example.mviimageeditor.ui.home.HomeViewModel
 import com.example.mviimageeditor.ui.search.SearchViewModel
@@ -34,6 +35,11 @@ val databaseModule =
         single { DatabaseModule.provideCollectionDao(get()) }
     }
 
+val dispatcherModule =
+    module {
+        single<DispatcherProvider> { DispatcherProviderImpl() }
+    }
+
 val networkModule =
     module {
         single(named(RETROFIT)) { NetworkModule.provideRetrofitInterface(androidContext()) }
@@ -49,9 +55,9 @@ val dataModule =
         single<DownloadService> { DownloadServiceImpl(androidContext()) }
 
         // Repository Module
-        single<AuthorizeRepository> { AuthorizeRepositoryImpl(get()) }
+        single<AuthorizeRepository> { AuthorizeRepositoryImpl(get(), get()) }
         single<HomeRepository> { HomeRepositoryImpl(get(), get()) }
-        single<DetailRepository> { DetailRepositoryImpl(get()) }
+        single<DetailRepository> { DetailRepositoryImpl(get(), get()) }
         // single<CreateImageRepository> { CreateImageRepositoryImpl(get()) }
         single<FavoriteRepository> { FavoriteRepositoryImpl(get()) }
         single<SearchRepository> { SearchRepositoryImpl(get()) }
@@ -67,7 +73,7 @@ val viewModelModule =
         viewModel { (state: SavedStateHandle) ->
             DetailViewModel(get(), state)
         }
-//        viewModel { CreateImageViewModel(get()) }
+        viewModel { CaptureImageViewmodel() }
 //        viewModel { FavoriteViewModel(get()) }
         viewModel { SearchViewModel(get()) }
     }

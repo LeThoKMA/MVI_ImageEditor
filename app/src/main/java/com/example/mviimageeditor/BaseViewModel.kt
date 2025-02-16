@@ -15,12 +15,12 @@ import java.net.HttpURLConnection
 import javax.net.ssl.HttpsURLConnection
 
 abstract class BaseViewModel : ViewModel() {
-    private val _baseSate = MutableStateFlow(State())
-    private val _baseEffect = MutableSharedFlow<Effect>()
-    val baseState: StateFlow<State>
+    private val _baseSate = MutableStateFlow(BaseState())
+    private val _baseEffect = MutableSharedFlow<BaseEffect>()
+    val baseState: StateFlow<BaseState>
         get() = _baseSate
 
-    val baseEffect: SharedFlow<Effect>
+    val baseEffect: SharedFlow<BaseEffect>
         get() = _baseEffect
 
     protected fun showLoading() {
@@ -67,7 +67,7 @@ abstract class BaseViewModel : ViewModel() {
                         _baseSate.update {
                             it.copy(errorMessage = "Bạn không có quyền truy cập")
                         }
-                        _baseEffect.emit(Effect.OnErrorAuthorize)
+                        _baseEffect.emit(BaseEffect.OnErrorAuthorize)
                     }
 
                     HttpsURLConnection.HTTP_FORBIDDEN, HttpsURLConnection.HTTP_INTERNAL_ERROR, HttpsURLConnection.HTTP_NOT_FOUND ->
@@ -89,17 +89,17 @@ abstract class BaseViewModel : ViewModel() {
         }
     }
 
-    data class State(
+    data class BaseState(
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
         val responseMessage: String? = null,
     )
 
-    sealed class Effect {
-        data object OnErrorAuthorize : Effect()
+    sealed class BaseEffect {
+        data object OnErrorAuthorize : BaseEffect()
 
         data class ShowToast(
             val message: String,
-        ) : Effect()
+        ) : BaseEffect()
     }
 }

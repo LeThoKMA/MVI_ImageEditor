@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinSerialization)
     alias(libs.plugins.compose.compiler)
     id("com.google.devtools.ksp")
+    id("org.jlleitschuh.gradle.ktlint") version "11.1.0"
 }
 
 android {
@@ -84,6 +85,8 @@ dependencies {
     implementation(libs.compose)
     implementation(libs.androidx.constraintlayout.compose)
 
+    ktlintRuleset(libs.ktlint)
+
     // paging3
     implementation(libs.androidx.paging.runtime.ktx)
     // alternatively - without Android dependencies for tests
@@ -103,4 +106,25 @@ dependencies {
 
     // Leak-canary
     debugImplementation(libs.squareup.leakcanary.android)
+
+    // The following line is optional, as the core library is included indirectly by camera-camera2
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    // If you want to additionally use the CameraX Lifecycle library
+    implementation(libs.androidx.camera.lifecycle)
+    // If you want to additionally use the CameraX VideoCapture library
+    implementation(libs.androidx.camera.video)
+    // If you want to additionally use the CameraX View class
+    implementation(libs.androidx.camera.view)
+    // If you want to additionally add CameraX ML Kit Vision Integration
+    implementation(libs.androidx.camera.mlkit.vision)
+    // If you want to additionally use the CameraX Extensions library
+    implementation(libs.androidx.camera.extensions)
+
+    // ViewFinder - Compose
+    implementation(libs.androidx.camera.viewfinder.compose)
+
+    implementation(libs.androidx.viewfinder.view)
+    implementation(libs.androidx.viewfinder.core)
+    implementation(libs.androidx.camera.compose)
 }

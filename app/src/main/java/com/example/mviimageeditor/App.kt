@@ -6,6 +6,7 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import com.example.mviimageeditor.module.dataModule
 import com.example.mviimageeditor.module.databaseModule
+import com.example.mviimageeditor.module.dispatcherModule
 import com.example.mviimageeditor.module.networkModule
 import com.example.mviimageeditor.module.viewModelModule
 import okio.Path.Companion.toPath
@@ -22,7 +23,13 @@ class App :
         startKoin {
             androidLogger()
             androidContext(this@App)
-            modules(databaseModule, networkModule, dataModule, viewModelModule)
+            modules(
+                databaseModule,
+                networkModule,
+                dataModule,
+                viewModelModule,
+                dispatcherModule,
+            )
         }
         GlideModule()
         ImageLoader

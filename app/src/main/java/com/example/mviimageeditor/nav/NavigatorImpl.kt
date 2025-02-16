@@ -28,9 +28,6 @@ class NavigatorImpl(
                     Screen.BottomNav.Search
                         .serializer()
                         .descriptor.serialName,
-                    Screen.BottomNav.Create
-                        .serializer()
-                        .descriptor.serialName,
                     Screen.BottomNav.Favourites
                         .serializer()
                         .descriptor.serialName,

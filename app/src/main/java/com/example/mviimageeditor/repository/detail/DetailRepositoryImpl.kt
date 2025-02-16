@@ -2,23 +2,21 @@ package com.example.mviimageeditor.repository.detail
 
 import android.graphics.Bitmap
 import com.example.mviimageeditor.download.DownloadService
-import kotlinx.coroutines.Dispatchers
+import com.example.mviimageeditor.module.DispatcherProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.flowOn
 
-class DetailRepositoryImpl(private val downloadService: DownloadService) : DetailRepository {
-    override suspend fun downloadImage(url: String): Flow<Unit> {
-        return withContext(Dispatchers.IO) {
-            flow {
-                emit(downloadService.downloadImage(url))
-            }
-        }
-    }
+class DetailRepositoryImpl(
+    private val downloadService: DownloadService,
+    private val dispatcher: DispatcherProvider,
+) : DetailRepository {
+    override suspend fun downloadImage(url: String): Flow<Unit> =
+        flow {
+            emit(downloadService.downloadImage(url))
+        }.flowOn(dispatcher.io())
 
-    override suspend fun saveImage(bitmap: Bitmap): Flow<Unit> {
-        return withContext(Dispatchers.IO) {
-            flow { emit(downloadService.saveImage(bitmap)) }
-        }
-    }
+    override suspend fun saveImage(bitmap: Bitmap): Flow<Unit> =
+        flow { emit(downloadService.saveImage(bitmap)) }
+            .flowOn(dispatcher.io())
 }
