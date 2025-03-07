@@ -15,3 +15,6 @@
 .cxx
 local.properties
 /.idea/runConfigurations.xml
+/.kotlin/errors
+/.idea/graphql-settings.xml
+/.idea/material_theme_project_new.xml

@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.mviimageeditor.permission.PermissionRequester
@@ -88,7 +89,12 @@ fun CreateScreen(
             }
         }
         state.imageCapture?.let {
-            Image(it.asImageBitmap(), contentDescription = "Captured Image")
+            Image(
+                it.asImageBitmap(),
+                contentDescription = "Captured Image",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }
@@ -107,7 +113,6 @@ fun BoxScope.CaptureView(
         Modifier.align(Alignment.BottomCenter),
         onCapture = {
             event(CaptureImageContract.Event.OnCapture)
-            println(">>>>>>>>>>>>>>")
         },
         onFlash = { event(CaptureImageContract.Event.OnFlash) },
         onSwitchCamera = { event(CaptureImageContract.Event.OnSwitchCamera) },

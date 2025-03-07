@@ -13,16 +13,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class CaptureImageViewmodel :
-    BaseViewModel(),
-    CaptureImageContract {
-    private val _state = MutableStateFlow(CaptureImageContract.State())
-    private val _effect = MutableSharedFlow<CaptureImageContract.Effect>()
-    override val effect: SharedFlow<CaptureImageContract.Effect>
-        get() = _effect.asSharedFlow()
-    override val state: StateFlow<CaptureImageContract.State>
-        get() = _state.asStateFlow()
+    BaseViewModel<CaptureImageContract.State, CaptureImageContract.Event, CaptureImageContract.Effect>() {
 
-    override fun event(event: CaptureImageContract.Event) {
+    override val _effect: MutableSharedFlow<CaptureImageContract.Effect> = MutableSharedFlow()
+
+    override val _state: MutableStateFlow<CaptureImageContract.State> = MutableStateFlow(
+        CaptureImageContract.State()
+    )
+
+
+    override fun handleEvent(event: CaptureImageContract.Event) {
         viewModelScope.launch {
             when (event) {
                 CaptureImageContract.Event.OnCapture -> {

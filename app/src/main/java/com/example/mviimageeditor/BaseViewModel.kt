@@ -1,105 +1,70 @@
 package com.example.mviimageeditor
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
-import java.net.HttpURLConnection
-import javax.net.ssl.HttpsURLConnection
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-abstract class BaseViewModel : ViewModel() {
-    private val _baseSate = MutableStateFlow(BaseState())
-    private val _baseEffect = MutableSharedFlow<BaseEffect>()
-    val baseState: StateFlow<BaseState>
-        get() = _baseSate
+@Suppress("ktlint:standard:backing-property-naming")
+abstract class BaseViewModel<STATE, EVENT, EFFECT> : ViewModel() {
+    protected abstract val _state: MutableStateFlow<STATE>
+    protected abstract val _effect: MutableSharedFlow<EFFECT>
 
-    val baseEffect: SharedFlow<BaseEffect>
-        get() = _baseEffect
+    val state: StateFlow<STATE>
+        get() = _state.asStateFlow()
 
-    protected fun showLoading() {
-        _baseSate.update {
-            it.copy(
-                isLoading = true,
-            )
-        }
-    }
+    val effect: SharedFlow<EFFECT>
+        get() = _effect.asSharedFlow()
 
-    protected fun hideLoading() {
-        _baseSate.update {
-            it.copy(
-                isLoading = false,
-            )
-        }
-    }
+    abstract fun handleEvent(event: EVENT)
 
-    protected fun handleApiError(error: Throwable?) {
-        viewModelScope.launch {
-            if (error == null) {
-                _baseSate.update {
-                    it.copy(errorMessage = "Có lỗi xảy ra")
-                }
-                return@launch
-            }
+    protected fun handleApiError(error: Throwable?) {}
 
-            if (error is HttpException) {
-                Log.w("ERROR", error.message() + error.code())
-                when (error.code()) {
-                    HttpURLConnection.HTTP_BAD_REQUEST ->
-                        try {
-                            _baseSate.update {
-                                it.copy(responseMessage = error.message())
-                            }
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                            _baseSate.update {
-                                it.copy(responseMessage = error.message())
-                            }
-                        }
-
-                    HttpsURLConnection.HTTP_UNAUTHORIZED -> {
-                        _baseSate.update {
-                            it.copy(errorMessage = "Bạn không có quyền truy cập")
-                        }
-                        _baseEffect.emit(BaseEffect.OnErrorAuthorize)
-                    }
-
-                    HttpsURLConnection.HTTP_FORBIDDEN, HttpsURLConnection.HTTP_INTERNAL_ERROR, HttpsURLConnection.HTTP_NOT_FOUND ->
-                        _baseSate.update {
-                            it.copy(responseMessage = error.message())
-                        }
-
-                    else ->
-                        _baseSate.update {
-                            it.copy(responseMessage = error.message())
-                        }
-                }
-            } else if (error is IOException) {
-                Log.e("TAG", error.message.toString())
-                _baseSate.update {
-                    it.copy(errorMessage = error.message.toString())
-                }
-            }
-        }
-    }
-
-    data class BaseState(
-        val isLoading: Boolean = false,
-        val errorMessage: String? = null,
-        val responseMessage: String? = null,
-    )
-
-    sealed class BaseEffect {
-        data object OnErrorAuthorize : BaseEffect()
-
-        data class ShowToast(
-            val message: String,
-        ) : BaseEffect()
-    }
+//    protected fun handleApiError(error: Throwable?) {
+//        if (error == null) {
+//            Error.UnknownError
+//            return
+//        }
+//
+//        if (error is HttpException) {
+//            Log.w("ERROR", error.message() + error.code())
+//            when (error.code()) {
+//                HttpURLConnection.HTTP_BAD_REQUEST ->
+//                    Error.NetworkError(error.message(), error.code())
+//
+//                HttpsURLConnection.HTTP_UNAUTHORIZED -> {
+//                    Error.NetworkError(error.message(), error.code())
+//                }
+//
+//                HttpsURLConnection.HTTP_FORBIDDEN, HttpsURLConnection.HTTP_INTERNAL_ERROR, HttpsURLConnection.HTTP_NOT_FOUND -> {
+//                    Error.NetworkError(error.message(), error.code())
+//                }
+//
+//                else -> {
+//                    Error.NetworkError(error.message(), error.code())
+//                }
+//            }
+//        } else if (error is IOException) {
+//            Log.e("TAG", error.message.toString())
+//            Error.IOError(error.message.toString())
+//        }
+//    }
+//
+//    sealed class Error(
+//        message: String,
+//    ) {
+//        data object UnknownError : Error(message = "Có lỗi xảy ra")
+//
+//        data class NetworkError(
+//            val message: String,
+//            val type: Int,
+//        ) : Error(message = message)
+//
+//        data class IOError(
+//            val message: String,
+//        ) : Error(message = message)
+//    }
 }

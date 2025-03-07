@@ -27,61 +27,61 @@ import com.example.mviimageeditor.ui.authorize.AuthorizeActivity
 import com.example.mviimageeditor.ui.theme.GrayE0
 import org.koin.androidx.compose.koinViewModel
 
-@Composable
-fun BaseView(
-    innerPadding: PaddingValues = PaddingValues(0.dp),
-    viewModel: BaseViewModel = koinViewModel(),
-    childView: @Composable () -> Unit,
-) {
-    val state = viewModel.baseState.collectAsState()
-    val isLoading = state.value.isLoading
-    val context = LocalContext.current
-    LaunchedEffect(key1 = Unit) {
-        viewModel.baseEffect.collect {
-            when (it) {
-                is BaseViewModel.BaseEffect.OnErrorAuthorize -> {
-                    MyPreference(context).deleteToken()
-                    context.startActivity(Intent(context, AuthorizeActivity::class.java))
-                }
-
-                else -> {}
-            }
-        }
-    }
-    Box(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .background(if (isLoading) GrayE0 else Color.White)
-                .padding(innerPadding),
-    ) {
-        childView()
-        if (isLoading) {
-            Column(
-                modifier =
-                    Modifier
-                        .size(150.dp)
-                        .align(Alignment.Center)
-                        .padding(16.dp)
-                        .clip(
-                            RoundedCornerShape(8.dp),
-                        ).background(Color.White),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .background(Color.White),
-                )
-                Text(
-                    text = "Loading",
-                    modifier =
-                        Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 16.dp),
-                )
-            }
-        }
-    }
-}
+//@Composable
+//fun BaseView(
+//    innerPadding: PaddingValues = PaddingValues(0.dp),
+//    viewModel: BaseViewModel = koinViewModel(),
+//    childView: @Composable () -> Unit,
+//) {
+//    val state = viewModel.baseState.collectAsState()
+//    val isLoading = state.value.isLoading
+//    val context = LocalContext.current
+//    LaunchedEffect(key1 = Unit) {
+//        viewModel.baseEffect.collect {
+//            when (it) {
+//                is BaseViewModel.BaseEffect.OnErrorAuthorize -> {
+//                    MyPreference(context).deleteToken()
+//                    context.startActivity(Intent(context, AuthorizeActivity::class.java))
+//                }
+//
+//                else -> {}
+//            }
+//        }
+//    }
+//    Box(
+//        modifier =
+//            Modifier
+//                .fillMaxSize()
+//                .background(if (isLoading) GrayE0 else Color.White)
+//                .padding(innerPadding),
+//    ) {
+//        childView()
+//        if (isLoading) {
+//            Column(
+//                modifier =
+//                    Modifier
+//                        .size(150.dp)
+//                        .align(Alignment.Center)
+//                        .padding(16.dp)
+//                        .clip(
+//                            RoundedCornerShape(8.dp),
+//                        ).background(Color.White),
+//                verticalArrangement = Arrangement.Center,
+//            ) {
+//                CircularProgressIndicator(
+//                    modifier =
+//                        Modifier
+//                            .align(Alignment.CenterHorizontally)
+//                            .background(Color.White),
+//                )
+//                Text(
+//                    text = "Loading",
+//                    modifier =
+//                        Modifier
+//                            .align(Alignment.CenterHorizontally)
+//                            .padding(top = 16.dp),
+//                )
+//            }
+//        }
+//    }
+//}

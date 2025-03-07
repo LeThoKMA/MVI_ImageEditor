@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.example.mviimageeditor.utils.rotate
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
@@ -61,27 +62,27 @@ class CameraHelper(
         }
     }
 
-
-    fun onCaptureImage(
-        onPhotoCaptured: (Bitmap) -> Unit,
-    ) {
+    fun onCaptureImage(onPhotoCaptured: (Bitmap) -> Unit) {
         val mainExecutor: Executor = ContextCompat.getMainExecutor(context)
 
-        imageCapture.takePicture(mainExecutor, object : ImageCapture.OnImageCapturedCallback() {
-            override fun onCaptureSuccess(image: ImageProxy) {
-                val correctedBitmap: Bitmap = image
-                    .toBitmap()
-//                    .rotateBitmap(image.imageInfo.rotationDegrees)
+        imageCapture.takePicture(
+            mainExecutor,
+            object : ImageCapture.OnImageCapturedCallback() {
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    val correctedBitmap: Bitmap =
+                        image
+                            .toBitmap()
+                            .rotate(image.imageInfo.rotationDegrees.toFloat())
 
-                onPhotoCaptured(correctedBitmap)
-                image.close()
+                    onPhotoCaptured(correctedBitmap)
+                    image.close()
+                }
 
-            }
-
-            override fun onError(exception: ImageCaptureException) {
-                Log.e("CameraContent", "Error capturing image", exception)
-            }
-        })
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e("CameraContent", "Error capturing image", exception)
+                }
+            },
+        )
     }
 
     fun onSwitchCamera() {
@@ -91,10 +92,14 @@ class CameraHelper(
             // Xác định camera cần dùng
             val newCameraSelector =
                 if (isUsingFrontCamera) {
-                    CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                    CameraSelector
+                        .Builder()
+                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                         .build()
                 } else {
-                    CameraSelector.Builder().requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                    CameraSelector
+                        .Builder()
+                        .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
                         .build()
                 }
 
@@ -105,7 +110,7 @@ class CameraHelper(
                 lifecycleOwner,
                 newCameraSelector,
                 cameraPreviewUseCase,
-                imageCapture
+                imageCapture,
             )
 
             // Cập nhật trạng thái camera

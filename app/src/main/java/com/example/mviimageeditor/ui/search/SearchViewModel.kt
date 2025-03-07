@@ -15,14 +15,9 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModel(private val searchRepository: SearchRepository) :
-    BaseViewModel(),
-    SearchContract {
-    private val _state = MutableStateFlow(SearchContract.State())
-    private val _effect = MutableSharedFlow<SearchContract.Effect>()
-    override val state: StateFlow<SearchContract.State>
-        get() = _state
-    override val effect: SharedFlow<SearchContract.Effect>
-        get() = _effect
+    BaseViewModel<SearchContract.State, SearchContract.Event, SearchContract.Effect>() {
+    override val _state = MutableStateFlow(SearchContract.State())
+    override val _effect = MutableSharedFlow<SearchContract.Effect>()
 
     private val querySearchState = MutableStateFlow(ALL)
     val pagingDataFlow =
@@ -30,7 +25,7 @@ class SearchViewModel(private val searchRepository: SearchRepository) :
             .flatMapLatest { searchRepository.searchPhotos(it) }
             .cachedIn(viewModelScope) // Sử dụng cachedIn để lưu trữ dữ liệu phân trang.
 
-    override fun event(event: SearchContract.Event) {
+    override fun handleEvent(event: SearchContract.Event) {
         viewModelScope.launch {
             when (event) {
                 is SearchContract.Event.OnLoadMore -> {

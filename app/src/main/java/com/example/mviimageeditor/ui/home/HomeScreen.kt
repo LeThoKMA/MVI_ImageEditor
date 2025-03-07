@@ -1,6 +1,7 @@
 package com.example.mviimageeditor.ui.home
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -16,7 +17,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.example.mviimageeditor.model.CollectionModel
-import com.example.mviimageeditor.nav.BaseView
 import com.example.mviimageeditor.nav.LocalAppNavigator
 import com.example.mviimageeditor.nav.Screen
 import com.example.mviimageeditor.ui.home.component.ImageItem
@@ -46,9 +46,12 @@ fun HomeScreen(
             }
         }
     }
-    BaseView(innerPadding = innerPaddingValues, homeViewModel) {
-        HomeView(state, event, pagingState)
-    }
+    HomeView(
+        state,
+        event,
+        pagingState,
+        modifier = Modifier.padding(paddingValues = innerPaddingValues)
+    )
 }
 
 @Composable

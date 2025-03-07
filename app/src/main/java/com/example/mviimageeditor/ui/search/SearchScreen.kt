@@ -35,9 +35,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.example.mviimageeditor.custom.GlideImageCustom
 import com.example.mviimageeditor.model.PhotoModel
-import com.example.mviimageeditor.nav.BaseView
 import com.example.mviimageeditor.nav.LocalAppNavigator
 import com.example.mviimageeditor.nav.Screen
 import com.example.mviimageeditor.use
@@ -67,18 +65,18 @@ fun SearchScreen(
     BackHandler {
         navigator.navigateBack()
     }
-    BaseView(innerPaddingValues, viewModel = searchViewModel) {
-        SearchView(
-            state,
-            event,
-            pagingData,
-        )
-    }
+    SearchView(
+        modifier = Modifier.padding(paddingValues = innerPaddingValues),
+        state,
+        event,
+        pagingData
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
 @Composable
 fun SearchView(
+    modifier: Modifier,
     state: SearchContract.State,
     event: (SearchContract.Event) -> Unit,
     pagingData: LazyPagingItems<PhotoModel>,
@@ -97,10 +95,10 @@ fun SearchView(
     Column {
         SearchBar(
             modifier =
-                Modifier
-                    .padding(horizontal = 8.dp)
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+            Modifier
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth()
+                .wrapContentHeight(),
             inputField = {
                 SearchBarDefaults.InputField(
                     query = query,
@@ -117,9 +115,9 @@ fun SearchView(
                                 Icons.Filled.Clear,
                                 contentDescription = "clear",
                                 modifier =
-                                    Modifier.clickable {
-                                        onClear()
-                                    },
+                                Modifier.clickable {
+                                    onClear()
+                                },
                             )
                         }
                     },
@@ -138,12 +136,13 @@ fun SearchView(
                 items(pagingData.itemCount, key = pagingData.itemKey { it.id }) {
                     GlideImage(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clickable {
-                                    event(SearchContract.Event.OnViewDetail(pagingData[it]?.urls?.regular))
-                                }.animateItem(),
+                        Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clickable {
+                                event(SearchContract.Event.OnViewDetail(pagingData[it]?.urls?.regular))
+                            }
+                            .animateItem(),
                         model = pagingData[it]?.urls?.regular,
                         contentDescription = pagingData[it]?.description,
                         contentScale = ContentScale.Crop,
@@ -158,9 +157,9 @@ fun SearchView(
                 }
             },
             modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(top = 4.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(top = 4.dp),
         )
         pagingData.apply {
             when {
