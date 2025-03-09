@@ -127,4 +127,7 @@ dependencies {
     implementation(libs.androidx.viewfinder.view)
     implementation(libs.androidx.viewfinder.core)
     implementation(libs.androidx.camera.compose)
+
+    //ML kit
+    implementation (libs.face.detection)
 }

@@ -7,19 +7,27 @@ import android.os.Build
 import android.provider.Settings
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.SurfaceRequest
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mviimageeditor.camera.CameraHelper
 import com.example.mviimageeditor.permission.PermissionRequester
 import com.example.mviimageeditor.ui.create.component.CameraOptionView
 import com.example.mviimageeditor.use
@@ -38,6 +46,7 @@ fun CreateScreen(
         remember {
             CameraHelper(context, lifecycleOwner)
         }
+    val faceAnalysisUIState by cameraHelper.faceAnalysisUiState.collectAsStateWithLifecycle()
 
     val permissions = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -70,6 +79,7 @@ fun CreateScreen(
             }
         }
     }
+
     PermissionRequester(permissions) { data ->
         if (data.filter { !it.value }.isNotEmpty()) {
             val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
@@ -102,12 +112,21 @@ fun CreateScreen(
 @Composable
 fun BoxScope.CaptureView(
     surfaceRequest: SurfaceRequest,
+    offsetFilterView: Offset = Offset.Zero,
     event: (CaptureImageContract.Event) -> Unit,
 ) {
     CameraXViewfinder(
         surfaceRequest = surfaceRequest,
         modifier = Modifier.fillMaxSize(),
     )
+
+    if (Offset.Zero != offsetFilterView) {
+        Canvas(modifier = Modifier.offset {
+            IntOffset(offsetFilterView.x.toInt(), offsetFilterView.y.toInt())
+        }) {
+            drawRect(Color.Blue)
+        }
+    }
 
     CameraOptionView(
         Modifier.align(Alignment.BottomCenter),

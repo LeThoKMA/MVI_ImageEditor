@@ -1,10 +1,11 @@
-package com.example.mviimageeditor.ui.create
+package com.example.mviimageeditor.camera
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -15,13 +16,18 @@ import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.example.mviimageeditor.utils.rotate
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
 class CameraHelper(
     private val context: Context,
@@ -30,6 +36,9 @@ class CameraHelper(
     private var _surfaceRequest by mutableStateOf<SurfaceRequest?>(null)
     val surfaceRequest get() = _surfaceRequest
 
+    private val _faceAnalysisUiState = MutableStateFlow(FaceAnalysisUIState())
+    val faceAnalysisUiState = _faceAnalysisUiState.asStateFlow()
+
     private var isUsingFrontCamera = true
     private val cameraPreviewUseCase =
         Preview.Builder().build().apply {
@@ -37,7 +46,27 @@ class CameraHelper(
                 _surfaceRequest = newSurfaceRequest
             }
         }
+    private val lifecycleScope = lifecycleOwner.lifecycleScope
+
     private val imageCapture = ImageCapture.Builder().build()
+    private val analysisExecutor by lazy { Executors.newSingleThreadExecutor() }
+    private val imageAnalyzer by lazy {
+        val imageAnalysisUseCase = ImageAnalysis.Builder()
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+        imageAnalysisUseCase.setAnalyzer(analysisExecutor, ImageAnalyzer(
+            onUpdateUI = { offset ->
+                _faceAnalysisUiState.update {
+                    it.copy(offsetView = offset)
+                }
+                println(offset)
+            },
+            onGone = {
+                _faceAnalysisUiState.update { it.copy(offsetView = Offset.Zero) }
+            }
+        ))
+        imageAnalysisUseCase
+    }
 
     init {
         bindToCamera()
@@ -51,6 +80,7 @@ class CameraHelper(
                 DEFAULT_FRONT_CAMERA,
                 imageCapture,
                 cameraPreviewUseCase,
+                imageAnalyzer
             )
 
             // Cancellation signals we're done with the camera
