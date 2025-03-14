@@ -128,6 +128,15 @@ dependencies {
     implementation(libs.androidx.viewfinder.core)
     implementation(libs.androidx.camera.compose)
 
-    //ML kit
-    implementation (libs.face.detection)
+    // ML kit
+    implementation(libs.face.detection)
+
+    // ArCore
+    implementation(libs.core)
+    implementation(libs.sceneform.ux)
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }

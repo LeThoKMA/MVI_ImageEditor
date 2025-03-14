@@ -9,6 +9,7 @@ import com.example.mviimageeditor.model.CollectionModel
 @Database(
     version = 1,
     entities = [CollectionModel::class],
+    exportSchema = false, // Tắt lưu schema
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

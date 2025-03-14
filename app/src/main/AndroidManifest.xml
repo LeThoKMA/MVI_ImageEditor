@@ -8,7 +8,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
         tools:ignore="SelectedPhotoAccess" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
@@ -20,6 +21,11 @@
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+
+    <uses-feature
+        android:name="android.hardware.camera.ar"
+        android:required="true" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:name=".App"
@@ -33,6 +39,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MVIImageEditor"
         tools:targetApi="31">
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="optional" /> <!-- optional hoặc required -->
         <activity
             android:name=".ui.authorize.AuthorizeActivity"
             android:exported="true"

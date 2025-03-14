@@ -32,6 +32,8 @@ import java.util.concurrent.Executors
 class CameraHelper(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,
+    private val widthSize: Int,
+    private val heightSize: Int,
 ) {
     private var _surfaceRequest by mutableStateOf<SurfaceRequest?>(null)
     val surfaceRequest get() = _surfaceRequest
@@ -51,20 +53,26 @@ class CameraHelper(
     private val imageCapture = ImageCapture.Builder().build()
     private val analysisExecutor by lazy { Executors.newSingleThreadExecutor() }
     private val imageAnalyzer by lazy {
-        val imageAnalysisUseCase = ImageAnalysis.Builder()
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build()
-        imageAnalysisUseCase.setAnalyzer(analysisExecutor, ImageAnalyzer(
-            onUpdateUI = { offset ->
-                _faceAnalysisUiState.update {
-                    it.copy(offsetView = offset)
-                }
-                println(offset)
-            },
-            onGone = {
-                _faceAnalysisUiState.update { it.copy(offsetView = Offset.Zero) }
-            }
-        ))
+        val imageAnalysisUseCase =
+            ImageAnalysis
+                .Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+        imageAnalysisUseCase.setAnalyzer(
+            analysisExecutor,
+            ImageAnalyzer(
+                widthSize = widthSize,
+                heightSize = heightSize,
+                onUpdateUI = { offset ->
+                    _faceAnalysisUiState.update {
+                        it.copy(offsetView = offset)
+                    }
+                },
+                onGone = {
+                    _faceAnalysisUiState.update { it.copy(offsetView = Offset.Zero) }
+                },
+            ),
+        )
         imageAnalysisUseCase
     }
 
@@ -80,7 +88,7 @@ class CameraHelper(
                 DEFAULT_FRONT_CAMERA,
                 imageCapture,
                 cameraPreviewUseCase,
-                imageAnalyzer
+                imageAnalyzer,
             )
 
             // Cancellation signals we're done with the camera
