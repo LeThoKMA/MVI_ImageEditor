@@ -42,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.14"
@@ -84,6 +85,11 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.compose)
     implementation(libs.androidx.constraintlayout.compose)
+    // compose ui
+    implementation(libs.ui)
+
+    implementation(libs.androidx.ui.viewbinding)
+    implementation(libs.androidx.fragment.compose)
 
     ktlintRuleset(libs.ktlint)
 

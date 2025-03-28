@@ -6,8 +6,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -39,7 +39,7 @@ import com.example.mviimageeditor.permission.PermissionManager
 import com.example.mviimageeditor.ui.theme.MVIImageEditorTheme
 import kotlinx.serialization.ExperimentalSerializationApi
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     @SuppressLint("RestrictedApi")
     @OptIn(ExperimentalSerializationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {

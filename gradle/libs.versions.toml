@@ -1,14 +1,17 @@
 [versions]
 accompanistDrawablepainter = "0.37.0"
 agp = "8.8.2"
+arcore = "1.0.0-alpha03"
 cameraCore = "1.5.0-alpha06"
 cameraViewfinderCompose = "1.4.0-alpha13"
 coilCompose = "3.0.4"
 compose = "1.0.0-beta01"
+composeVersion = "1.0.0-alpha03"
 constraintlayoutCompose = "1.1.1"
 converterGson = "2.9.0"
 core = "1.48.0"
 faceDetection = "16.1.7"
+fragmentCompose = "1.8.6"
 gson = "2.10.1"
 koinAndroid = "3.5.6"
 koinAndroidxCompose = "3.5.6"
@@ -32,10 +35,14 @@ retrofit = "2.11.0"
 material = "1.12.0"
 paletteKtx = "1.0.0"
 room = "2.6.1"
+runtime = "1.0.0-alpha03"
+scenecore = "1.0.0-alpha03"
 sceneformUx = "1.17.1"
+ui = "1.7.8"
 
 [libraries]
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainter" }
+androidx-arcore = { module = "androidx.xr.arcore:arcore", version.ref = "arcore" }
 androidx-camera-compose = { module = "androidx.camera:camera-compose", version.ref = "cameraCore" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
@@ -45,8 +52,10 @@ androidx-camera-video = { module = "androidx.camera:camera-video", version.ref =
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
 androidx-camera-viewfinder-compose = { module = "androidx.camera.viewfinder:viewfinder-compose", version.ref = "cameraViewfinderCompose" }
+androidx-compose = { module = "androidx.xr.compose:compose", version.ref = "composeVersion" }
 androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-fragment-compose = { module = "androidx.fragment:fragment-compose", version.ref = "fragmentCompose" }
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "pagingRuntimeKtx" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingRuntimeKtx" }
 androidx-paging-runtime-ktx = { module = "androidx.paging:paging-runtime-ktx", version.ref = "pagingRuntimeKtx" }
@@ -54,6 +63,9 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-paging = { module = "androidx.room:room-paging", version.ref = "room" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-runtime = { module = "androidx.xr.runtime:runtime", version.ref = "runtime" }
+androidx-scenecore = { module = "androidx.xr.scenecore:scenecore", version.ref = "scenecore" }
+androidx-ui-viewbinding = { module = "androidx.compose.ui:ui-viewbinding", version.ref = "ui" }
 androidx-viewfinder-core = { module = "androidx.camera.viewfinder:viewfinder-core", version.ref = "cameraViewfinderCompose" }
 androidx-viewfinder-view = { module = "androidx.camera.viewfinder:viewfinder-view", version.ref = "cameraViewfinderCompose" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
@@ -88,6 +100,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "paletteKtx" }
 sceneform-ux = { module = "com.google.ar.sceneform.ux:sceneform-ux", version.ref = "sceneformUx" }
 squareup-leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroidVersion" }
+ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

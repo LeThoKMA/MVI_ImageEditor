@@ -2,13 +2,11 @@ package com.example.mviimageeditor.ui.create
 
 import android.Manifest
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.SurfaceRequest
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -27,14 +25,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.mviimageeditor.R
 import com.example.mviimageeditor.camera.CameraHelper
 import com.example.mviimageeditor.permission.PermissionRequester
+import com.example.mviimageeditor.ui.ar.ARScreen
 import com.example.mviimageeditor.ui.create.component.CameraOptionView
 import com.example.mviimageeditor.use
 import kotlinx.coroutines.flow.collectLatest
@@ -140,26 +136,32 @@ fun BoxScope.CaptureView(
     )
 
     if (Offset.Zero != offsetFilterView) {
-        AndroidView(factory = {
-        })
-        Canvas(
+        ARScreen(
             modifier =
                 Modifier
                     .size(200.dp)
                     .offset {
                         IntOffset(offsetFilterView.x.toInt(), offsetFilterView.y.toInt())
                     },
-        ) {
-            drawImage(
-                image =
-                    BitmapFactory
-                        .decodeResource(
-                            context.resources,
-                            R.drawable.meme,
-                        ).asImageBitmap(),
-                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
-            )
-        }
+        )
+//        Canvas(
+//            modifier =
+//                Modifier
+//                    .size(200.dp)
+//                    .offset {
+//                        IntOffset(offsetFilterView.x.toInt(), offsetFilterView.y.toInt())
+//                    },
+//        ) {
+//            drawImage(
+//                image =
+//                    BitmapFactory
+//                        .decodeResource(
+//                            context.resources,
+//                            R.drawable.meme,
+//                        ).asImageBitmap(),
+//                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+//            )
+//        }
 
         CameraOptionView(
             Modifier.align(Alignment.BottomCenter),

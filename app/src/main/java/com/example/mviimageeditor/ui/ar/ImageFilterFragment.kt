@@ -1,34 +1,35 @@
 package com.example.mviimageeditor.ui.ar
 
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.fragment.compose.AndroidFragment
 import com.google.ar.core.Pose
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import java.io.File
 
-class ImageFilterView : ArFragment() {
+class ImageFilterFragment : ArFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-        val view = super.onCreateView(inflater, container, savedInstanceState)
+        val rootView = super.onCreateView(inflater, container, savedInstanceState)
         load3DModel()
-        return view
+        return rootView
     }
 
     private fun load3DModel() {
-        val modelUri = Uri.parse("models/bunny.glb") // Đường dẫn tới file .glb
-
         ModelRenderable
             .builder()
-            .setSource(context, modelUri)
+//            .setSource(context, Uri.fromFile())
 //            .setIsFilamentGltf(true) // Quan trọng với file .glb
             .build()
             .thenAccept { renderable ->
@@ -52,4 +53,14 @@ class ImageFilterView : ArFragment() {
             modelNode.select() // Cho phép kéo/thả mô hình
         }
     }
+
+    fun copyAssetToCache(): File {
+        val file = File("src/main/assets/models/sonic_head.gbl")
+        return file
+    }
+}
+
+@Composable
+fun ARScreen(modifier: Modifier) {
+    AndroidFragment<ImageFilterFragment>(modifier = modifier)
 }
