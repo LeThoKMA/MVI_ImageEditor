@@ -30,7 +30,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mviimageeditor.camera.CameraHelper
 import com.example.mviimageeditor.permission.PermissionRequester
-import com.example.mviimageeditor.ui.ar.ARScreen
+import com.example.mviimageeditor.ui.ar.FilamentView
 import com.example.mviimageeditor.ui.create.component.CameraOptionView
 import com.example.mviimageeditor.use
 import kotlinx.coroutines.flow.collectLatest
@@ -135,14 +135,15 @@ fun BoxScope.CaptureView(
                 .fillMaxSize(),
     )
 
-    if (Offset.Zero != offsetFilterView) {
-        ARScreen(
+//    println(offsetFilterView)
+//    if (Offset.Zero != offsetFilterView) {
+    FilamentView(
             modifier =
                 Modifier
-                    .size(200.dp)
-                    .offset {
-                        IntOffset(offsetFilterView.x.toInt(), offsetFilterView.y.toInt())
-                    },
+                    .size(200.dp).align(Alignment.Center)
+//                    .offset {
+//                        IntOffset(offsetFilterView.x.toInt(), offsetFilterView.y.toInt())
+//                    },
         )
 //        Canvas(
 //            modifier =
@@ -172,4 +173,4 @@ fun BoxScope.CaptureView(
             onSwitchCamera = { event(CaptureImageContract.Event.OnSwitchCamera) },
         )
     }
-}
+//}

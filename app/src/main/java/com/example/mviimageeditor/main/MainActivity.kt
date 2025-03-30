@@ -6,6 +6,9 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -36,7 +39,9 @@ import com.example.mviimageeditor.nav.appNavGraph
 import com.example.mviimageeditor.nav.bottomNavGraph
 import com.example.mviimageeditor.nav.getBottomNavigationItems
 import com.example.mviimageeditor.permission.PermissionManager
+import com.example.mviimageeditor.ui.ar.ImageFilamentFragment
 import com.example.mviimageeditor.ui.theme.MVIImageEditorTheme
+import com.google.ar.core.ArCoreApk
 import kotlinx.serialization.ExperimentalSerializationApi
 
 class MainActivity : AppCompatActivity() {
@@ -44,6 +49,9 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ExperimentalSerializationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (ArCoreApk.getInstance().checkAvailability(this) != ArCoreApk.Availability.SUPPORTED_INSTALLED) {
+            Toast.makeText(this, "ARCore not supported on this device", Toast.LENGTH_LONG).show()
+        }
         val permissionManager =
             PermissionManager(this) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -57,73 +65,77 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionManager.requestPermission(listOf(Manifest.permission.POST_NOTIFICATIONS))
         }
-        setContent {
-            MVIImageEditorTheme {
-                val scope = rememberCoroutineScope()
-                var navItemSelected by remember { mutableIntStateOf(0) }
-                val navController = rememberNavController()
-                val navigator =
-                    remember {
-                        NavigatorImpl(navController, scope)
-                    }
-                val isShowBottomBar by navigator.isShowBottomBar.collectAsStateWithLifecycle()
-
-                val navSelectedCallBack =
-                    remember<(Int, BottomNavigationItem) -> Unit> {
-                        { index, bottomNavItem ->
-                            navItemSelected = index
-                            navigator.navigate(bottomNavItem.route)
-                        }
-                    }
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        AnimatedVisibility(
-                            visible = isShowBottomBar,
-                            enter =
-                                slideInVertically(
-                                    initialOffsetY = { it },
-                                    animationSpec = tween(durationMillis = 100),
-                                ),
-                            exit =
-                                slideOutVertically(
-                                    targetOffsetY = { it },
-                                    animationSpec = tween(durationMillis = 100),
-                                ),
-                        ) {
-                            NavigationBar {
-                                getBottomNavigationItems().forEachIndexed { index, bottomNavItem ->
-                                    NavigationBarItem(
-                                        selected = index == navItemSelected,
-                                        label = { Text(bottomNavItem.label) },
-                                        icon = {
-                                            Icon(bottomNavItem.icon, bottomNavItem.label)
-                                        },
-                                        onClick = {
-                                            navSelectedCallBack(index, bottomNavItem)
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    },
-                ) { innerPadding ->
-                    CompositionLocalProvider(
-                        LocalAppNavigator provides navigator,
-                    ) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = Screen.BottomNav.Home,
-                            modifier =
-                                Modifier
-                                    .fillMaxSize(),
-                        ) {
-                            bottomNavGraph(innerPadding)
-                            appNavGraph(innerPadding)
-                        }
-                    }
-                }
-            }
-        }
+        val container = FrameLayout(this)
+        val filamentView = ImageFilamentFragment(this)
+        container.addView(filamentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        setContentView(container)
+//        setContent {
+//            MVIImageEditorTheme {
+//                val scope = rememberCoroutineScope()
+//                var navItemSelected by remember { mutableIntStateOf(0) }
+//                val navController = rememberNavController()
+//                val navigator =
+//                    remember {
+//                        NavigatorImpl(navController, scope)
+//                    }
+//                val isShowBottomBar by navigator.isShowBottomBar.collectAsStateWithLifecycle()
+//
+//                val navSelectedCallBack =
+//                    remember<(Int, BottomNavigationItem) -> Unit> {
+//                        { index, bottomNavItem ->
+//                            navItemSelected = index
+//                            navigator.navigate(bottomNavItem.route)
+//                        }
+//                    }
+//                Scaffold(
+//                    modifier = Modifier.fillMaxSize(),
+//                    bottomBar = {
+//                        AnimatedVisibility(
+//                            visible = isShowBottomBar,
+//                            enter =
+//                                slideInVertically(
+//                                    initialOffsetY = { it },
+//                                    animationSpec = tween(durationMillis = 100),
+//                                ),
+//                            exit =
+//                                slideOutVertically(
+//                                    targetOffsetY = { it },
+//                                    animationSpec = tween(durationMillis = 100),
+//                                ),
+//                        ) {
+//                            NavigationBar {
+//                                getBottomNavigationItems().forEachIndexed { index, bottomNavItem ->
+//                                    NavigationBarItem(
+//                                        selected = index == navItemSelected,
+//                                        label = { Text(bottomNavItem.label) },
+//                                        icon = {
+//                                            Icon(bottomNavItem.icon, bottomNavItem.label)
+//                                        },
+//                                        onClick = {
+//                                            navSelectedCallBack(index, bottomNavItem)
+//                                        },
+//                                    )
+//                                }
+//                            }
+//                        }
+//                    },
+//                ) { innerPadding ->
+//                    CompositionLocalProvider(
+//                        LocalAppNavigator provides navigator,
+//                    ) {
+//                        NavHost(
+//                            navController = navController,
+//                            startDestination = Screen.BottomNav.Home,
+//                            modifier =
+//                                Modifier
+//                                    .fillMaxSize(),
+//                        ) {
+//                            bottomNavGraph(innerPadding)
+//                            appNavGraph(innerPadding)
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 }

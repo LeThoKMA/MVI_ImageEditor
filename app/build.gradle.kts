@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.material)
     implementation(libs.androidx.palette.ktx)
+    implementation(libs.assets)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -139,7 +140,11 @@ dependencies {
 
     // ArCore
     implementation(libs.core)
-    implementation(libs.sceneform.ux)
+
+    //Filament
+    implementation (libs.filament.android)
+    implementation (libs.gltfio.android) // Hỗ trợ GLB / GLTF
+    implementation (libs.filament.utils.android)
 }
 java {
     toolchain {

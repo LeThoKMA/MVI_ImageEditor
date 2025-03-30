@@ -11,7 +11,9 @@ constraintlayoutCompose = "1.1.1"
 converterGson = "2.9.0"
 core = "1.48.0"
 faceDetection = "16.1.7"
+filamentAndroid = "1.57.1"
 fragmentCompose = "1.8.6"
+gltfioAndroid = "1.57.1"
 gson = "2.10.1"
 koinAndroid = "3.5.6"
 koinAndroidxCompose = "3.5.6"
@@ -39,6 +41,7 @@ runtime = "1.0.0-alpha03"
 scenecore = "1.0.0-alpha03"
 sceneformUx = "1.17.1"
 ui = "1.7.8"
+assets = "1.17.1"
 
 [libraries]
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainter" }
@@ -73,6 +76,9 @@ compose = { module = "com.github.bumptech.glide:compose", version.ref = "compose
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 core = { module = "com.google.ar:core", version.ref = "core" }
 face-detection = { module = "com.google.mlkit:face-detection", version.ref = "faceDetection" }
+filament-utils-android = { module = "com.google.android.filament:filament-utils-android", version.ref = "filamentAndroid" }
+gltfio-android = { module = "com.google.android.filament:gltfio-android", version.ref = "gltfioAndroid" }
+filament-android = { module = "com.google.android.filament:filament-android", version.ref = "filamentAndroid" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -101,6 +107,7 @@ androidx-palette-ktx = { group = "androidx.palette", name = "palette-ktx", versi
 sceneform-ux = { module = "com.google.ar.sceneform.ux:sceneform-ux", version.ref = "sceneformUx" }
 squareup-leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroidVersion" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
+assets = { group = "com.google.ar.sceneform", name = "assets", version.ref = "assets" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
