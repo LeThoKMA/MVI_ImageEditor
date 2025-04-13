@@ -9,6 +9,7 @@ import com.example.mviimageeditor.module.databaseModule
 import com.example.mviimageeditor.module.dispatcherModule
 import com.example.mviimageeditor.module.networkModule
 import com.example.mviimageeditor.module.viewModelModule
+import com.google.android.filament.utils.Utils
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -50,5 +51,7 @@ class App :
                     ).maxSizePercent(0.25)
                     .build()
             }.build()
+        //Filament
+        Utils.init()
     }
 }

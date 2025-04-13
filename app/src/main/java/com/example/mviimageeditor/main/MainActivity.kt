@@ -3,6 +3,7 @@ package com.example.mviimageeditor.main
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -28,9 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.example.mviimageeditor.ModelViewerView
+import com.example.mviimageeditor.R
 import com.example.mviimageeditor.nav.BottomNavigationItem
 import com.example.mviimageeditor.nav.LocalAppNavigator
 import com.example.mviimageeditor.nav.NavigatorImpl
@@ -65,10 +70,7 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissionManager.requestPermission(listOf(Manifest.permission.POST_NOTIFICATIONS))
         }
-        val container = FrameLayout(this)
-        val filamentView = ImageFilamentFragment(this)
-        container.addView(filamentView, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        setContentView(container)
+        setContentView(R.layout.main_activity)
 //        setContent {
 //            MVIImageEditorTheme {
 //                val scope = rememberCoroutineScope()

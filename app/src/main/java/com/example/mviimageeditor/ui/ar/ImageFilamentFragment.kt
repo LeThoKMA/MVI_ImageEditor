@@ -15,6 +15,7 @@ import com.google.android.filament.SwapChain
 import com.google.android.filament.gltfio.AssetLoader
 import com.google.android.filament.gltfio.ResourceLoader
 import com.google.android.filament.gltfio.UbershaderProvider
+import com.google.android.filament.utils.ModelViewer
 import com.google.android.filament.utils.Utils
 import java.nio.ByteBuffer
 
@@ -24,10 +25,10 @@ class ImageFilamentFragment(context: Context) : SurfaceView(context), SurfaceHol
     private lateinit var scene: Scene
     private lateinit var view: com.google.android.filament.View
     private lateinit var swapChain: SwapChain
+    val modelViewer = ModelViewer(this)
 
     init {
         holder.addCallback(this)
-        Utils.init()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
@@ -41,7 +42,7 @@ class ImageFilamentFragment(context: Context) : SurfaceView(context), SurfaceHol
         // Load GLB model
         val assetLoader = AssetLoader(engine, UbershaderProvider(engine), EntityManager.get())
         val resourceLoader = ResourceLoader(engine)
-        val glb = context.assets.open("models/sonic_head.glb").use {
+        val glb = context.assets.open("models/little_cartoon_dog.glb").use {
             assetLoader.createAsset(ByteBuffer.wrap(it.readBytes()))
         }
         glb?.let {

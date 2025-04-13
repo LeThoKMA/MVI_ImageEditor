@@ -1,3 +1,26 @@
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.mviimageeditor.R
+
 //package com.example.mviimageeditor.ui.ar
 //
 //import android.net.Uri
@@ -75,3 +98,69 @@
 //fun ARScreen(modifier: Modifier) {
 //    AndroidFragment<ImageFilterFragment>(modifier = modifier)
 //}
+
+@Composable
+fun Test() {
+    var totalHeight by remember { mutableIntStateOf(0) }
+    var textHeight by remember { mutableIntStateOf(0) }
+    val minContentHeight = 200
+    val minContentHeightPx = with(LocalDensity.current) { minContentHeight.dp.toPx().toInt() }
+    val listState = rememberLazyListState()
+    val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .onGloballyPositioned { totalHeight = it.size.height }) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            item {
+                Text(
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+                        "aa" +
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
+                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    modifier = Modifier.onGloballyPositioned {
+                        textHeight = it.size.height
+                    })
+            }
+            item {
+                Column(
+                    modifier = Modifier.then(
+                        if (totalHeight - textHeight < minContentHeight) {
+                            Modifier.height(minContentHeight.dp)
+                        } else {
+                            Modifier.weight(1f)
+                        }
+                    )
+                ) {
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        painter = painterResource(R.drawable.ic_launcher_background),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+
+        }
+        Button(modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp), onClick = {
+        }) {
+            Text(text = "Button")
+        }
+    }
+}
+
+@Preview(name = "Small screen", widthDp = 320, heightDp = 480)
+@Composable
+fun TestPreview() {
+    Test()
+}
