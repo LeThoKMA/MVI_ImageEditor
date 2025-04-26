@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.annotation.RequiresApi
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.SurfaceRequest
 import androidx.compose.foundation.Image
@@ -15,15 +16,16 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -36,14 +38,13 @@ import com.example.mviimageeditor.use
 import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
+@RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun CreateScreen(
-    modifier: Modifier = Modifier,
-    viewmodel: CaptureImageViewmodel = koinViewModel(),
-) {
+fun CreateScreen(viewmodel: CaptureImageViewmodel = koinViewModel()) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
+    val windowInfo = LocalWindowInfo.current.containerSize
 
     val (state, event, effect) = use(viewmodel)
     val cameraHelper =
@@ -51,11 +52,18 @@ fun CreateScreen(
             CameraHelper(
                 context,
                 lifecycleOwner,
-                configuration.screenWidthDp,
-                configuration.screenHeightDp,
+                widthSize = windowInfo.width,
+                heightSize = windowInfo.height,
             )
         }
     val faceAnalysisUIState by cameraHelper.faceAnalysisUiState.collectAsStateWithLifecycle()
+    val isShowFilter by remember(faceAnalysisUIState.offsetView) {
+        derivedStateOf {
+            IntOffset.Zero != faceAnalysisUIState.offsetView
+        }
+    }
+    val faceWidth = remember(faceAnalysisUIState.viewSize) { faceAnalysisUIState.viewSize?.first }
+    val faceHeight = remember(faceAnalysisUIState.viewSize) { faceAnalysisUIState.viewSize?.second }
 
     val permissions =
         remember {
@@ -100,16 +108,27 @@ fun CreateScreen(
         }
     }
 
-    Box(modifier) {
+    Box(modifier = Modifier.fillMaxSize()) {
         if (state.imageCapture == null) {
             cameraHelper.surfaceRequest?.let {
                 CaptureView(
                     surfaceRequest = it,
-                    faceAnalysisUIState.offsetView,
                     event = event,
                 )
             }
         }
+
+        if (faceWidth != null && faceHeight != null) {
+            FilamentView(
+                modifier =
+                    Modifier
+                        .offset {
+                            faceAnalysisUIState.offsetView
+                        }.size(width = faceWidth.dp, height = faceHeight.dp),
+                isShow = isShowFilter,
+            )
+        }
+
         state.imageCapture?.let {
             Image(
                 it.asImageBitmap(),
@@ -121,10 +140,10 @@ fun CreateScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun BoxScope.CaptureView(
     surfaceRequest: SurfaceRequest,
-    offsetFilterView: Offset = Offset.Zero,
     event: (CaptureImageContract.Event) -> Unit,
 ) {
     val context = LocalContext.current
@@ -135,42 +154,12 @@ fun BoxScope.CaptureView(
                 .fillMaxSize(),
     )
 
-//    println(offsetFilterView)
-//    if (Offset.Zero != offsetFilterView) {
-    FilamentView(
-            modifier =
-                Modifier
-                    .size(200.dp).align(Alignment.Center)
-//                    .offset {
-//                        IntOffset(offsetFilterView.x.toInt(), offsetFilterView.y.toInt())
-//                    },
-        )
-//        Canvas(
-//            modifier =
-//                Modifier
-//                    .size(200.dp)
-//                    .offset {
-//                        IntOffset(offsetFilterView.x.toInt(), offsetFilterView.y.toInt())
-//                    },
-//        ) {
-//            drawImage(
-//                image =
-//                    BitmapFactory
-//                        .decodeResource(
-//                            context.resources,
-//                            R.drawable.meme,
-//                        ).asImageBitmap(),
-//                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
-//            )
-//        }
-
-        CameraOptionView(
-            Modifier.align(Alignment.BottomCenter),
-            onCapture = {
-                event(CaptureImageContract.Event.OnCapture)
-            },
-            onFlash = { event(CaptureImageContract.Event.OnFlash) },
-            onSwitchCamera = { event(CaptureImageContract.Event.OnSwitchCamera) },
-        )
-    }
-//}
+    CameraOptionView(
+        Modifier.align(Alignment.BottomCenter),
+        onCapture = {
+            event(CaptureImageContract.Event.OnCapture)
+        },
+        onFlash = { event(CaptureImageContract.Event.OnFlash) },
+        onSwitchCamera = { event(CaptureImageContract.Event.OnSwitchCamera) },
+    )
+}

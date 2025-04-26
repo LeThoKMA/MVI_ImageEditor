@@ -1,4 +1,4 @@
-package com.example.mviimageeditor
+package com.example.mviimageeditor.ui.ar
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -9,67 +9,120 @@ import android.view.SurfaceView
 import com.google.android.filament.Fence
 import com.google.android.filament.Material
 import com.google.android.filament.View
+import com.google.android.filament.android.UiHelper
 import com.google.android.filament.utils.AutomationEngine
 import com.google.android.filament.utils.KTX1Loader
 import com.google.android.filament.utils.ModelViewer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 
 @SuppressLint("ClickableViewAccessibility")
-class ModelViewerView(context: Context, attrs: AttributeSet) : SurfaceView(context, attrs), SurfaceHolder.Callback {
+class ModelViewerView(
+    context: Context,
+    attrs: AttributeSet? = null,
+) : SurfaceView(context, attrs),
+    SurfaceHolder.Callback {
     private var loadStartTime = 0L
     private var loadStartFence: Fence? = null
     private val viewerContent = AutomationEngine.ViewerContent()
 
     // Create model viewer
-    private var modelViewer: ModelViewer = ModelViewer(this)
-    private var rotationY = 0f
-    private val choreographer = android.view.Choreographer.getInstance()
+    private var modelViewer: ModelViewer =
+        ModelViewer(
+            this,
+            // make background is transparent (1)
+            uiHelper =
+                UiHelper().apply {
+                    isOpaque = false
+                },
+        )
+    private val choreographer = Choreographer.getInstance()
     private val frameCallback = FrameCallback()
 
-    //    private val frameCallback = object : android.view.Choreographer.FrameCallback {
-//        override fun doFrame(frameTimeNanos: Long) {
-//            modelViewer.render(frameTimeNanos)
-//            choreographer.postFrameCallback(this)
-//        }
-//    }
     init {
         holder.addCallback(this)
     }
-    private fun loadGlbModel(assetPath: String) {
-        val buffer = context.assets.open(assetPath).use { input ->
-            ByteBuffer.wrap(input.readBytes())
+
+    override fun surfaceCreated(p0: SurfaceHolder) {
+        viewerContent.view = modelViewer.view
+        viewerContent.sunlight = modelViewer.light
+        viewerContent.lightManager = modelViewer.engine.lightManager
+        viewerContent.scene = modelViewer.scene
+        viewerContent.renderer = modelViewer.renderer
+        this@ModelViewerView.setOnTouchListener { view, event ->
+            modelViewer.onTouchEvent(event)
+            true
         }
-        modelViewer.loadModelGlb(buffer)
-        modelViewer.transformToUnitCube()
+        createDefaultRenderables()
+
+        // make background is transparent (2)
+        modelViewer.view.blendMode = com.google.android.filament.View.BlendMode.TRANSLUCENT
+        modelViewer.scene.skybox = null
+        //    createIndirectLight()
+        val view = modelViewer.view
+        // on mobile, better use lower quality color buffer
+        view.renderQuality =
+            view.renderQuality.apply {
+                hdrColorBuffer = View.QualityLevel.MEDIUM
+            }
+
+        // dynamic resolution often helps a lot
+        view.dynamicResolutionOptions =
+            view.dynamicResolutionOptions.apply {
+                enabled = true
+                quality = View.QualityLevel.MEDIUM
+            }
+
+        // MSAA is needed with dynamic resolution MEDIUM
+        view.multiSampleAntiAliasingOptions =
+            view.multiSampleAntiAliasingOptions.apply {
+                enabled = true
+            }
+
+        // FXAA is pretty cheap and helps a lot
+        view.antiAliasing = View.AntiAliasing.FXAA
+
+        // ambient occlusion is the cheapest effect that adds a lot of quality
+        view.ambientOcclusionOptions =
+            view.ambientOcclusionOptions.apply {
+                enabled = true
+            }
+
+        // bloom is pretty expensive but adds a fair amount of realism
+        view.bloomOptions =
+            view.bloomOptions.apply {
+                enabled = true
+            }
+
+        // Start render loop
+        choreographer.postFrameCallback(frameCallback)
     }
 
-    private fun loadGlb() {
-        val buffer = context.assets.open("models/sonic_head.glb").use { input ->
-            val bytes = ByteArray(input.available())
-            input.read(bytes)
-            ByteBuffer.wrap(bytes)
-        }
-        modelViewer.loadModelGlb(buffer)
+    override fun surfaceChanged(
+        p0: SurfaceHolder,
+        p1: Int,
+        p2: Int,
+        p3: Int,
+    ) {
+    }
 
-        loadStartTime = System.nanoTime()
-        // loadStartFence = modelViewer.engine.createFence()
+    override fun surfaceDestroyed(p0: SurfaceHolder) {
+        modelViewer.destroyModel()
     }
 
     private fun createDefaultRenderables() {
-        val buffer = context.assets.open("models/sonic_head.glb").use { input ->
-            val bytes = ByteArray(input.available())
-            input.read(bytes)
-            ByteBuffer.wrap(bytes)
-        }
+        val buffer =
+            context.assets.open("models/sonic_head.glb").use { input ->
+                val bytes = ByteArray(input.available())
+                input.read(bytes)
+                ByteBuffer.wrap(bytes)
+            }
 
         modelViewer.loadModelGlb(buffer)
         modelViewer.transformToUnitCube()
-         loadStartFence = modelViewer.engine.createFence()
+        loadStartFence = modelViewer.engine.createFence()
     }
 
+    // indirectLight from ibl and create skybox
     private fun createIndirectLight() {
         val engine = modelViewer.engine
         val scene = modelViewer.scene
@@ -94,17 +147,9 @@ class ModelViewerView(context: Context, attrs: AttributeSet) : SurfaceView(conte
         return ByteBuffer.wrap(bytes)
     }
 
-
-//    private fun updateRootTransform() {
-//        if (automation.viewerOptions.autoScaleEnabled) {
-//            modelViewer.transformToUnitCube()
-//        } else {
-//            modelViewer.clearRootTransform()
-//        }
-//    }
-
     inner class FrameCallback : Choreographer.FrameCallback {
         private val startTime = System.nanoTime()
+
         override fun doFrame(frameTimeNanos: Long) {
             choreographer.postFrameCallback(this)
             loadStartFence?.let {
@@ -133,17 +178,19 @@ class ModelViewerView(context: Context, attrs: AttributeSet) : SurfaceView(conte
                         it.compile(
                             Material.CompilerPriorityQueue.HIGH,
                             Material.UserVariantFilterBit.DIRECTIONAL_LIGHTING or
-                                    Material.UserVariantFilterBit.DYNAMIC_LIGHTING or
-                                    Material.UserVariantFilterBit.SHADOW_RECEIVER,
-                            null, null
+                                Material.UserVariantFilterBit.DYNAMIC_LIGHTING or
+                                Material.UserVariantFilterBit.SHADOW_RECEIVER,
+                            null,
+                            null,
                         )
                         it.compile(
                             Material.CompilerPriorityQueue.LOW,
                             Material.UserVariantFilterBit.FOG or
-                                    Material.UserVariantFilterBit.SKINNING or
-                                    Material.UserVariantFilterBit.SSR or
-                                    Material.UserVariantFilterBit.VSM,
-                            null, null
+                                Material.UserVariantFilterBit.SKINNING or
+                                Material.UserVariantFilterBit.SSR or
+                                Material.UserVariantFilterBit.VSM,
+                            null,
+                            null,
                         )
                     }
                 }
@@ -180,64 +227,5 @@ class ModelViewerView(context: Context, attrs: AttributeSet) : SurfaceView(conte
 //                }
 //            }
         }
-    }
-
-    override fun surfaceCreated(p0: SurfaceHolder) {
-        CoroutineScope(Dispatchers.Main).launch {
-            viewerContent.view = modelViewer.view
-            viewerContent.sunlight = modelViewer.light
-            viewerContent.lightManager = modelViewer.engine.lightManager
-            viewerContent.scene = modelViewer.scene
-            viewerContent.renderer = modelViewer.renderer
-            this@ModelViewerView.setOnTouchListener { view, event ->
-                modelViewer.onTouchEvent(event)
-                true
-            }
-            createDefaultRenderables()
-            createIndirectLight()
-            val view = modelViewer.view
-            // on mobile, better use lower quality color buffer
-            view.renderQuality = view.renderQuality.apply {
-                hdrColorBuffer = View.QualityLevel.MEDIUM
-            }
-
-            // dynamic resolution often helps a lot
-            view.dynamicResolutionOptions = view.dynamicResolutionOptions.apply {
-                enabled = true
-                quality = View.QualityLevel.MEDIUM
-            }
-
-            // MSAA is needed with dynamic resolution MEDIUM
-            view.multiSampleAntiAliasingOptions = view.multiSampleAntiAliasingOptions.apply {
-                enabled = true
-            }
-
-            // FXAA is pretty cheap and helps a lot
-            view.antiAliasing = View.AntiAliasing.FXAA
-
-            // ambient occlusion is the cheapest effect that adds a lot of quality
-            view.ambientOcclusionOptions = view.ambientOcclusionOptions.apply {
-                enabled = true
-            }
-
-            // bloom is pretty expensive but adds a fair amount of realism
-            view.bloomOptions = view.bloomOptions.apply {
-                enabled = true
-            }
-
-//        // Load the GLB model
-//        loadGlbModel("models/sonic_head.glb")
-
-
-            // Start render loop
-            choreographer.postFrameCallback(frameCallback)
-        }
-    }
-
-    override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-
-    }
-
-    override fun surfaceDestroyed(p0: SurfaceHolder) {
     }
 }

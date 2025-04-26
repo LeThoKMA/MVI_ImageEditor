@@ -16,7 +16,7 @@ import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntOffset
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -48,7 +48,6 @@ class CameraHelper(
                 _surfaceRequest = newSurfaceRequest
             }
         }
-    private val lifecycleScope = lifecycleOwner.lifecycleScope
 
     private val imageCapture = ImageCapture.Builder().build()
     private val analysisExecutor by lazy { Executors.newSingleThreadExecutor() }
@@ -63,13 +62,27 @@ class CameraHelper(
             ImageAnalyzer(
                 widthSize = widthSize,
                 heightSize = heightSize,
-                onUpdateUI = { offset ->
-                    _faceAnalysisUiState.update {
-                        it.copy(offsetView = offset)
+                onUpdateUI = { imageAnalyst ->
+                    if (faceAnalysisUiState.value.viewSize == null && imageAnalyst.faceBoundingBox != null) {
+                        _faceAnalysisUiState.update {
+                            it.copy(
+                                offsetView = imageAnalyst.offsetFilterView,
+                                viewSize = imageAnalyst.faceBoundingBox,
+                            )
+                        }
+                    } else {
+                        _faceAnalysisUiState.update {
+                            it.copy(offsetView = imageAnalyst.offsetFilterView)
+                        }
                     }
                 },
                 onGone = {
-                    _faceAnalysisUiState.update { it.copy(offsetView = Offset.Zero) }
+                    _faceAnalysisUiState.update {
+                        it.copy(
+                            offsetView = IntOffset.Zero,
+//                            viewSize = null,
+                        )
+                    }
                 },
             ),
         )
