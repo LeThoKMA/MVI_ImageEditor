@@ -68,6 +68,9 @@ class CameraHelper(
                             it.copy(
                                 offsetView = imageAnalyst.offsetFilterView,
                                 viewSize = imageAnalyst.faceBoundingBox,
+                                headEulerAngleX = imageAnalyst.headEulerAngleX,
+                                headEulerAngleY = imageAnalyst.headEulerAngleY,
+                                headEulerAngleZ = imageAnalyst.headEulerAngleZ,
                             )
                         }
                     } else {

@@ -68,29 +68,40 @@ class ImageAnalyzer(
         // Xác định vị trí tai thỏ (dựa vào trán - top of face)
         val bounds = face.boundingBox // Lấy bounding box của khuôn mặt
 
-        Log.e(">>>>>>>>>>>", face.headEulerAngleY.toString())
-
         val rotY = face.headEulerAngleY // Lấy góc xoay theo trục Y,
         val leftEye = face.getLandmark(FaceLandmark.LEFT_EYE)?.position
         val rightEye = face.getLandmark(FaceLandmark.RIGHT_EYE)?.position
         if (leftEye != null && rightEye != null) {
-            if (rotY >= -30 && rotY <= 30) {
-                onUpdateUI.invoke(
-                    ImageAnalystModel(
-                        faceBoundingBox = Pair(bounds.width(), bounds.height()),
-                        leftEye,
-                        rightEye,
-                    ),
-                )
-            } else {
-                onGone.invoke()
-            }
+//            if (rotY >= -30 && rotY <= 30) {
+//                onUpdateUI.invoke(
+//                    ImageAnalystModel(
+//                        faceBoundingBox = Pair(bounds.width(), bounds.height()),
+//                        leftEye,
+//                        rightEye,
+//                    ),
+//                )
+//            } else {
+//                onGone.invoke()
+//            }
+            onUpdateUI.invoke(
+                ImageAnalystModel(
+                    faceBoundingBox = Pair(bounds.width(), bounds.height()),
+                    headEulerAngleX = face.headEulerAngleX,
+                    headEulerAngleY = face.headEulerAngleY,
+                    headEulerAngleZ = face.headEulerAngleZ,
+                    leftEye,
+                    rightEye,
+                ),
+            )
         }
     }
 }
 
 data class ImageAnalystModel(
     val faceBoundingBox: Pair<Int, Int>? = null,
+    val headEulerAngleX: Float? = null,
+    val headEulerAngleY: Float? = null,
+    val headEulerAngleZ: Float? = null,
     private val leftEye: PointF? = null,
     private val rightEye: PointF? = null,
 ) {
