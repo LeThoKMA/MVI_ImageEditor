@@ -2,12 +2,14 @@ package com.example.mviimageeditor.ui.ar
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.opengl.Matrix
 import android.util.AttributeSet
 import android.view.Choreographer
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.google.android.filament.Fence
 import com.google.android.filament.Material
+import com.google.android.filament.Renderer
 import com.google.android.filament.View
 import com.google.android.filament.android.UiHelper
 import com.google.android.filament.utils.AutomationEngine
@@ -26,75 +28,85 @@ class ModelViewerView(
     private val viewerContent = AutomationEngine.ViewerContent()
 
     // Create model viewer
-    private var modelViewer: ModelViewer =
+    private val modelViewer: ModelViewer =
         ModelViewer(
             this,
             // make background is transparent (1)
             uiHelper =
                 UiHelper().apply {
                     isOpaque = false
+                    isMediaOverlay = true
                 },
         )
+
     private val choreographer = Choreographer.getInstance()
     private val frameCallback = FrameCallback()
 
     init {
+        setZOrderOnTop(true)
         holder.addCallback(this)
     }
 
     override fun surfaceCreated(p0: SurfaceHolder) {
-        viewerContent.view = modelViewer.view
-        viewerContent.sunlight = modelViewer.light
-        viewerContent.lightManager = modelViewer.engine.lightManager
-        viewerContent.scene = modelViewer.scene
-        viewerContent.renderer = modelViewer.renderer
-        this@ModelViewerView.setOnTouchListener { view, event ->
-            modelViewer.onTouchEvent(event)
-            true
+        modelViewer.let {
+            viewerContent.view = modelViewer.view
+            viewerContent.sunlight = modelViewer.light
+            viewerContent.lightManager = modelViewer.engine.lightManager
+            viewerContent.scene = modelViewer.scene
+            viewerContent.renderer = modelViewer.renderer
+            this@ModelViewerView.setOnTouchListener { view, event ->
+                modelViewer.onTouchEvent(event)
+                true
+            }
+            createDefaultRenderables()
+
+            // make background is transparent (2)
+            modelViewer.view.blendMode = com.google.android.filament.View.BlendMode.TRANSLUCENT
+            modelViewer.scene.skybox = null
+            //    createIndirectLight()
+            val view = modelViewer.view
+            // on mobile, better use lower quality color buffer
+            view.renderQuality =
+                view.renderQuality.apply {
+                    hdrColorBuffer = View.QualityLevel.MEDIUM
+                }
+
+            // dynamic resolution often helps a lot
+            view.dynamicResolutionOptions =
+                view.dynamicResolutionOptions.apply {
+                    enabled = true
+                    quality = View.QualityLevel.MEDIUM
+                }
+
+            // MSAA is needed with dynamic resolution MEDIUM
+            view.multiSampleAntiAliasingOptions =
+                view.multiSampleAntiAliasingOptions.apply {
+                    enabled = true
+                }
+
+            // FXAA is pretty cheap and helps a lot
+            view.antiAliasing = View.AntiAliasing.FXAA
+
+            // ambient occlusion is the cheapest effect that adds a lot of quality
+            view.ambientOcclusionOptions =
+                view.ambientOcclusionOptions.apply {
+                    enabled = true
+                }
+
+            // bloom is pretty expensive but adds a fair amount of realism
+            view.bloomOptions =
+                view.bloomOptions.apply {
+                    enabled = true
+                }
+
+            // Start render loop
+            choreographer.postFrameCallback(frameCallback)
+            modelViewer.renderer.clearOptions =
+                Renderer.ClearOptions().apply {
+                    clear = true
+                    clearColor = floatArrayOf(0f, 0f, 0f, 0f)
+                }
         }
-        createDefaultRenderables()
-
-        // make background is transparent (2)
-        modelViewer.view.blendMode = com.google.android.filament.View.BlendMode.TRANSLUCENT
-        modelViewer.scene.skybox = null
-        //    createIndirectLight()
-        val view = modelViewer.view
-        // on mobile, better use lower quality color buffer
-        view.renderQuality =
-            view.renderQuality.apply {
-                hdrColorBuffer = View.QualityLevel.MEDIUM
-            }
-
-        // dynamic resolution often helps a lot
-        view.dynamicResolutionOptions =
-            view.dynamicResolutionOptions.apply {
-                enabled = true
-                quality = View.QualityLevel.MEDIUM
-            }
-
-        // MSAA is needed with dynamic resolution MEDIUM
-        view.multiSampleAntiAliasingOptions =
-            view.multiSampleAntiAliasingOptions.apply {
-                enabled = true
-            }
-
-        // FXAA is pretty cheap and helps a lot
-        view.antiAliasing = View.AntiAliasing.FXAA
-
-        // ambient occlusion is the cheapest effect that adds a lot of quality
-        view.ambientOcclusionOptions =
-            view.ambientOcclusionOptions.apply {
-                enabled = true
-            }
-
-        // bloom is pretty expensive but adds a fair amount of realism
-        view.bloomOptions =
-            view.bloomOptions.apply {
-                enabled = true
-            }
-
-        // Start render loop
-        choreographer.postFrameCallback(frameCallback)
     }
 
     override fun surfaceChanged(
@@ -106,7 +118,29 @@ class ModelViewerView(
     }
 
     override fun surfaceDestroyed(p0: SurfaceHolder) {
+        choreographer.removeFrameCallback(frameCallback)
         modelViewer.destroyModel()
+    }
+
+    fun setRotation(
+        x: Float,
+        y: Float,
+        z: Float,
+    ) {
+        val entity = modelViewer.asset?.root ?: return
+
+        // Khởi tạo ma trận danh tính
+        val transform = FloatArray(16)
+        Matrix.setIdentityM(transform, 0)
+
+        // Áp dụng các xoay
+        Matrix.rotateM(transform, 0, y, 0f, 1f, 0f) // quay mặt trái/phải
+        Matrix.rotateM(transform, 0, x, 1f, 0f, 0f) // gật đầu
+        Matrix.rotateM(transform, 0, z, 0f, 0f, 1f) // nghiêng đầu
+
+        val tm = modelViewer.engine.transformManager
+        val ti = tm.getInstance(entity)
+        tm.setTransform(ti, transform)
     }
 
     private fun createDefaultRenderables() {
@@ -203,7 +237,6 @@ class ModelViewerView(
                 }
                 updateBoneMatrices()
             }
-
             modelViewer.render(frameTimeNanos)
 
 //            // Check if a new download is in progress. If so, let the user know with toast.

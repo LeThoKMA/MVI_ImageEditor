@@ -6,14 +6,10 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
-import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.SurfaceRequest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -27,7 +23,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mviimageeditor.camera.CameraHelper
@@ -118,48 +113,56 @@ fun CreateScreen(viewmodel: CaptureImageViewmodel = koinViewModel()) {
             }
         }
 
-        if (faceWidth != null && faceHeight != null) {
-            FilamentView(
-                modifier =
-                    Modifier
-                        .offset {
-                            faceAnalysisUIState.offsetView
-                        }.size(width = faceWidth.dp, height = faceHeight.dp),
-                isShow = isShowFilter,
-            )
-        }
+        // if (faceWidth != null && faceHeight != null) {
+        FilamentView(
+            modifier =
+                Modifier.fillMaxSize(),
+//                        .offset {
+//                            faceAnalysisUIState.offsetView
+//                        }.size(width = faceWidth.dp, height = faceHeight.dp),
+//                isShow = isShowFilter,
+//                headEulerAngleX = faceAnalysisUIState.headEulerAngleX,
+//                headEulerAngleY = faceAnalysisUIState.headEulerAngleY,
+//                headEulerAngleZ = faceAnalysisUIState.headEulerAngleZ,
+        )
+    }
+    // }
 
-        state.imageCapture?.let {
-            Image(
-                it.asImageBitmap(),
-                contentDescription = "Captured Image",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-        }
+    state.imageCapture?.let {
+        Image(
+            it.asImageBitmap(),
+            contentDescription = "Captured Image",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun BoxScope.CaptureView(
+fun CaptureView(
     surfaceRequest: SurfaceRequest,
     event: (CaptureImageContract.Event) -> Unit,
 ) {
-    val context = LocalContext.current
-    CameraXViewfinder(
-        surfaceRequest = surfaceRequest,
+    Box(
         modifier =
-            Modifier
-                .fillMaxSize(),
-    )
+            Modifier.fillMaxSize(),
+    ) {
+//        CameraXViewfinder(
+//            surfaceRequest = surfaceRequest,
+//            implementationMode = ImplementationMode.EMBEDDED,
+//            modifier =
+//                Modifier
+//                    .fillMaxSize(),
+//        )
 
-    CameraOptionView(
-        Modifier.align(Alignment.BottomCenter),
-        onCapture = {
-            event(CaptureImageContract.Event.OnCapture)
-        },
-        onFlash = { event(CaptureImageContract.Event.OnFlash) },
-        onSwitchCamera = { event(CaptureImageContract.Event.OnSwitchCamera) },
-    )
+        CameraOptionView(
+            Modifier.align(Alignment.BottomCenter),
+            onCapture = {
+                event(CaptureImageContract.Event.OnCapture)
+            },
+            onFlash = { event(CaptureImageContract.Event.OnFlash) },
+            onSwitchCamera = { event(CaptureImageContract.Event.OnSwitchCamera) },
+        )
+    }
 }

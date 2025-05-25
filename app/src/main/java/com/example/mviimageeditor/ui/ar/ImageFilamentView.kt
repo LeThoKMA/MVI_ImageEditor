@@ -1,26 +1,29 @@
 package com.example.mviimageeditor.ui.ar
 
-import android.view.View
+import ModelTextureView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
 fun FilamentView(
-    modifier: Modifier,
-    isShow: Boolean,
+    modifier: Modifier = Modifier,
+    useTextureView: Boolean = false,
+    testMode: Boolean = false,
+    useTransparentSurface: Boolean = false,
+//    isShow: Boolean,
+//    headEulerAngleX: Float? = null,
+//    headEulerAngleY: Float? = null,
+//    headEulerAngleZ: Float? = null,
 ) {
-    // Box(modifier = Modifier.zIndex(1f).fillMaxSize()) {
     AndroidView(
         modifier = modifier,
-        factory = { context ->
-            ModelViewerView(context)
-        },
-        update = {
-            it.visibility = if (isShow) View.VISIBLE else View.GONE
-//            it.setZOrderOnTop(true)
-//            it.setZOrderMediaOverlay(true)
+        factory = ::ModelTextureView,
+        update = { view ->
+//            view.visibility = if (isShow) View.VISIBLE else View.GONE
+//            if (headEulerAngleX != null && headEulerAngleY != null && headEulerAngleZ != null) {
+//
+//            }
         },
     )
-    // }
 }
