@@ -6,13 +6,10 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
-import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.SurfaceRequest
-import androidx.camera.viewfinder.core.ImplementationMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -26,7 +23,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mviimageeditor.camera.CameraHelper
@@ -120,7 +116,7 @@ fun CreateScreen(viewmodel: CaptureImageViewmodel = koinViewModel()) {
         // if (faceWidth != null && faceHeight != null) {
         FilamentView(
             modifier =
-                Modifier.size(200.dp),
+                Modifier.fillMaxSize(),
 //                        .offset {
 //                            faceAnalysisUIState.offsetView
 //                        }.size(width = faceWidth.dp, height = faceHeight.dp),
@@ -152,13 +148,13 @@ fun CaptureView(
         modifier =
             Modifier.fillMaxSize(),
     ) {
-        CameraXViewfinder(
-            surfaceRequest = surfaceRequest,
-            implementationMode = ImplementationMode.EMBEDDED,
-            modifier =
-                Modifier
-                    .fillMaxSize(),
-        )
+//        CameraXViewfinder(
+//            surfaceRequest = surfaceRequest,
+//            implementationMode = ImplementationMode.EMBEDDED,
+//            modifier =
+//                Modifier
+//                    .fillMaxSize(),
+//        )
 
         CameraOptionView(
             Modifier.align(Alignment.BottomCenter),

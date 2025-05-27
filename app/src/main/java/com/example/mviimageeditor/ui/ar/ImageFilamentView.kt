@@ -1,5 +1,6 @@
 package com.example.mviimageeditor.ui.ar
 
+import ModelTextureView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
@@ -7,6 +8,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 fun FilamentView(
     modifier: Modifier = Modifier,
+    useTextureView: Boolean = false,
+    testMode: Boolean = false,
+    useTransparentSurface: Boolean = false,
 //    isShow: Boolean,
 //    headEulerAngleX: Float? = null,
 //    headEulerAngleY: Float? = null,
@@ -14,15 +18,11 @@ fun FilamentView(
 ) {
     AndroidView(
         modifier = modifier,
-        factory = { context ->
-            ModelViewerView(context).apply {
-                s
-            }
-        },
-        update = {
-//            it.visibility = if (isShow) View.VISIBLE else View.GONE
+        factory = ::ModelTextureView,
+        update = { view ->
+//            view.visibility = if (isShow) View.VISIBLE else View.GONE
 //            if (headEulerAngleX != null && headEulerAngleY != null && headEulerAngleZ != null) {
-//                it.setRotation(headEulerAngleX, headEulerAngleY, headEulerAngleZ)
+//
 //            }
         },
     )
