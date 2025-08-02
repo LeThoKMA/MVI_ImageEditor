@@ -9,12 +9,9 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
-import androidx.camera.core.Preview
-import androidx.camera.core.SurfaceRequest
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.core.content.ContextCompat
@@ -35,19 +32,10 @@ class CameraHelper(
     private val widthSize: Int,
     private val heightSize: Int,
 ) {
-    private var _surfaceRequest by mutableStateOf<SurfaceRequest?>(null)
-    val surfaceRequest get() = _surfaceRequest
-
     private val _faceAnalysisUiState = MutableStateFlow(FaceAnalysisUIState())
     val faceAnalysisUiState = _faceAnalysisUiState.asStateFlow()
 
     private var isUsingFrontCamera = true
-    private val cameraPreviewUseCase =
-        Preview.Builder().build().apply {
-            setSurfaceProvider { newSurfaceRequest ->
-                _surfaceRequest = newSurfaceRequest
-            }
-        }
 
     private val imageCapture = ImageCapture.Builder().build()
     private val analysisExecutor by lazy { Executors.newSingleThreadExecutor() }
@@ -103,7 +91,6 @@ class CameraHelper(
                 lifecycleOwner,
                 DEFAULT_FRONT_CAMERA,
                 imageCapture,
-                cameraPreviewUseCase,
                 imageAnalyzer,
             )
 
@@ -163,7 +150,6 @@ class CameraHelper(
             processCameraProvider.bindToLifecycle(
                 lifecycleOwner,
                 newCameraSelector,
-                cameraPreviewUseCase,
                 imageCapture,
             )
 

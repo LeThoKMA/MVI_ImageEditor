@@ -5,8 +5,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.camera.core.SurfaceRequest
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +27,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mviimageeditor.camera.CameraHelper
@@ -105,12 +112,9 @@ fun CreateScreen(viewmodel: CaptureImageViewmodel = koinViewModel()) {
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.imageCapture == null) {
-            cameraHelper.surfaceRequest?.let {
-                CaptureView(
-                    surfaceRequest = it,
-                    event = event,
-                )
-            }
+            CaptureView(
+                event = event,
+            )
         }
 
         // if (faceWidth != null && faceHeight != null) {
@@ -140,21 +144,12 @@ fun CreateScreen(viewmodel: CaptureImageViewmodel = koinViewModel()) {
 
 @RequiresApi(Build.VERSION_CODES.R)
 @Composable
-fun CaptureView(
-    surfaceRequest: SurfaceRequest,
-    event: (CaptureImageContract.Event) -> Unit,
-) {
+fun CaptureView(event: (CaptureImageContract.Event) -> Unit) {
     Box(
         modifier =
             Modifier.fillMaxSize(),
     ) {
-//        CameraXViewfinder(
-//            surfaceRequest = surfaceRequest,
-//            implementationMode = ImplementationMode.EMBEDDED,
-//            modifier =
-//                Modifier
-//                    .fillMaxSize(),
-//        )
+        CameraPreviewView()
 
         CameraOptionView(
             Modifier.align(Alignment.BottomCenter),
@@ -164,5 +159,42 @@ fun CaptureView(
             onFlash = { event(CaptureImageContract.Event.OnFlash) },
             onSwitchCamera = { event(CaptureImageContract.Event.OnSwitchCamera) },
         )
+    }
+}
+
+@Composable
+fun CameraPreviewView(
+    modifier: Modifier = Modifier,
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
+) {
+    val context = LocalContext.current
+    val previewView = remember { PreviewView(context) }
+
+    AndroidView(
+        factory = { previewView },
+        modifier = modifier,
+    ) { view ->
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+
+            val preview =
+                Preview.Builder().build().also {
+                    it.surfaceProvider = previewView.surfaceProvider
+                }
+
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    cameraSelector,
+                    preview,
+                )
+            } catch (e: Exception) {
+                Log.e("CameraPreviewView", "Use case binding failed", e)
+            }
+        }, ContextCompat.getMainExecutor(context))
     }
 }
