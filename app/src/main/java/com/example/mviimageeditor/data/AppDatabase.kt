@@ -7,7 +7,7 @@ import com.example.mviimageeditor.data.dao.CollectionDao
 import com.example.mviimageeditor.model.CollectionModel
 
 @Database(
-    version = 1,
+    version = 2,
     entities = [CollectionModel::class],
     exportSchema = false, // Tắt lưu schema
 )

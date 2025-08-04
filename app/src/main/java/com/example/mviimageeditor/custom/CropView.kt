@@ -1,11 +1,11 @@
 package com.example.mviimageeditor.custom
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
@@ -14,9 +14,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
@@ -31,15 +33,13 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.mviimageeditor.ui.theme.TransGray
 import kotlin.math.abs
-import kotlin.math.roundToInt
 
 @Composable
 fun CropView(
@@ -51,18 +51,18 @@ fun CropView(
     onCropDone: (Offset, Offset) -> Unit,
 ) {
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
+    val configuration = LocalWindowInfo.current.containerSize
 
     val screenHeightPx =
         remember {
             with(density) {
-                configuration.screenHeightDp.dp.toPx()
+                configuration.height.dp.toPx()
             }
         }
     val screenWidthPx =
         remember {
             with(density) {
-                configuration.screenWidthDp.dp.toPx()
+                configuration.width.dp.toPx()
             }
         }
     val anchorWidth =
@@ -151,7 +151,26 @@ fun CropView(
         }
 
     Box(
-        modifier = modifier,
+        modifier =
+            modifier
+                .drawBehind {
+                    val clipPath =
+                        Path().apply {
+                            addRect(
+                                androidx.compose.ui.geometry.Rect(
+                                    topLeft = positionTopLeft,
+                                    bottomRight = positionBottomRight,
+                                ),
+                            )
+                        }
+                    // Cắt bỏ phần hình chữ nhật
+                    clipPath(clipPath, clipOp = ClipOp.Difference) {
+                        drawRect(
+                            color = TransGray, // Màu nền ngoài
+                            size = size,
+                        )
+                    }
+                },
     ) {
         if (isVisibleDoneText) {
             Text(
@@ -171,13 +190,14 @@ fun CropView(
                     .size(quadSize)
                     .align(Alignment.TopStart)
                     .zIndex(2f)
-                    .offset {
-                        IntOffset(topLeftOffsetX.roundToInt(), topLeftOffsetY.roundToInt())
+                    .graphicsLayer {
+                        translationX = topLeftOffsetX
+                        translationY = topLeftOffsetY
                     }.onGloballyPositioned {
                         positionTopLeft =
                             it
                                 .positionInParent()
-                                .plus(Offset(strokeWidth, strokeWidth))
+                                .minus(Offset(strokeWidth, strokeWidth).div(6f))
                     }.pointerInput(key1 = onDragTopLeft) {
                         detectDragGestures(
                             onDrag = { change: PointerInputChange, dragAmount: Offset ->
@@ -221,11 +241,9 @@ fun CropView(
                     .size(quadSize)
                     .align(Alignment.TopEnd)
                     .zIndex(2f)
-                    .offset {
-                        IntOffset(
-                            bottomRightOffsetX.roundToInt(),
-                            topLeftOffsetY.roundToInt(),
-                        )
+                    .graphicsLayer {
+                        translationX = bottomRightOffsetX
+                        translationY = topLeftOffsetY
                     }.pointerInput(key1 = onDragTopRight) {
                         detectDragGestures(
                             onDrag = { change: PointerInputChange, dragAmount: Offset ->
@@ -274,18 +292,16 @@ fun CropView(
                     .size(quadSize)
                     .align(Alignment.BottomEnd)
                     .zIndex(2f)
-                    .offset {
-                        IntOffset(
-                            bottomRightOffsetX.roundToInt(),
-                            bottomRightOffsetY.roundToInt(),
-                        )
+                    .graphicsLayer {
+                        translationX = bottomRightOffsetX
+                        translationY = bottomRightOffsetY
                     }.onGloballyPositioned {
                         val topLeftPoint = it.positionInParent()
                         positionBottomRight =
                             Offset(
                                 topLeftPoint.x + it.size.width,
                                 topLeftPoint.y + it.size.height,
-                            ).minus(Offset(strokeWidth, strokeWidth))
+                            ).plus(Offset(strokeWidth, strokeWidth).div(6f))
                     }.pointerInput(key1 = onDragBottomRight) {
                         detectDragGestures(
                             onDrag = { change: PointerInputChange, dragAmount: Offset ->
@@ -334,11 +350,9 @@ fun CropView(
                     .size(quadSize)
                     .align(Alignment.BottomStart)
                     .zIndex(2f)
-                    .offset {
-                        IntOffset(
-                            topLeftOffsetX.roundToInt(),
-                            bottomRightOffsetY.roundToInt(),
-                        )
+                    .graphicsLayer {
+                        translationX = topLeftOffsetX
+                        translationY = bottomRightOffsetY
                     }.pointerInput(key1 = onDragBottomLeft) {
                         detectDragGestures(
                             onDrag = { change: PointerInputChange, dragAmount: Offset ->
@@ -379,31 +393,31 @@ fun CropView(
                     ),
             )
         }
-        Canvas(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        compositingStrategy = CompositingStrategy.Offscreen
-                    }.zIndex(1f),
-        ) {
-            // Vẽ nền ngoài hình chữ nhật
-            val clipPath =
-                Path().apply {
-                    addRect(
-                        androidx.compose.ui.geometry.Rect(
-                            topLeft = positionTopLeft,
-                            bottomRight = positionBottomRight,
-                        ),
-                    )
-                }
-            // Cắt bỏ phần hình chữ nhật
-            clipPath(clipPath, clipOp = ClipOp.Difference) {
-                drawRect(
-                    color = TransGray, // Màu nền ngoài
-                    size = size,
-                )
-            }
-        }
+//        Canvas(
+//            modifier =
+//                Modifier
+//                    .fillMaxSize()
+//                    .graphicsLayer {
+//                        compositingStrategy = CompositingStrategy.Offscreen
+//                    }.zIndex(1f),
+//        ) {
+//            // Vẽ nền ngoài hình chữ nhật
+//            val clipPath =
+//                Path().apply {
+//                    addRect(
+//                        androidx.compose.ui.geometry.Rect(
+//                            topLeft = positionTopLeft,
+//                            bottomRight = positionBottomRight,
+//                        ),
+//                    )
+//                }
+//            // Cắt bỏ phần hình chữ nhật
+//            clipPath(clipPath, clipOp = ClipOp.Difference) {
+//                drawRect(
+//                    color = TransGray, // Màu nền ngoài
+//                    size = size,
+//                )
+//            }
+//        }
     }
 }

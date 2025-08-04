@@ -3,13 +3,13 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrainsKotlinSerialization)
     alias(libs.plugins.compose.compiler)
-    id("com.google.devtools.ksp")
+    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
     id("org.jlleitschuh.gradle.ktlint") version "11.1.0"
 }
 
 android {
     namespace = "com.example.mviimageeditor"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.mviimageeditor"
@@ -141,10 +141,11 @@ dependencies {
     // ArCore
     implementation(libs.core)
 
-    //Filament
-    implementation (libs.filament.android)
-    implementation (libs.gltfio.android) // Hỗ trợ GLB / GLTF
-    implementation (libs.filament.utils.android)
+    // Filament
+    implementation(libs.filament.android)
+    implementation(libs.gltfio.android) // Hỗ trợ GLB / GLTF
+    implementation(libs.filament.utils.android)
+    implementation(libs.androidx.material.icons.extended)
 }
 java {
     toolchain {
