@@ -1,13 +1,11 @@
 package com.example.mviimageeditor.model
 
-import androidx.compose.runtime.Stable
 import androidx.core.text.HtmlCompat
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
 @Entity
-@Stable
 data class CollectionModel(
     @SerializedName("cover_photo")
     val coverPhoto: CoverPhoto,
