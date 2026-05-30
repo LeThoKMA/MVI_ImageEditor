@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.mviimageeditor.main.MainActivity
+import com.example.mviimageeditor.ui.authorize.AuthorizeActivity
 import com.example.mviimageeditor.ui.authorize.ui.theme.MVIImageEditorTheme
 import com.example.mviimageeditor.use
 import com.example.mviimageeditor.utils.ACCESS_KEY
@@ -26,6 +27,7 @@ import com.example.mviimageeditor.utils.RESPONSE_TYPE
 import com.example.mviimageeditor.utils.SCOPE
 import com.example.mviimageeditor.utils.SIGN_OF_AUTHORIZE
 import com.example.mviimageeditor.utils.toAuthorizationCode
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.androidx.compose.koinViewModel
 
 class AuthorizeActivity : ComponentActivity() {
@@ -34,31 +36,11 @@ class AuthorizeActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MVIImageEditorTheme {
-                val viewModel: AuthorizeViewModel = koinViewModel()
-                val (state, event, effect) = use(viewModel = viewModel)
-                val context = LocalContext.current
-                LaunchedEffect(key1 = effect) {
-                    effect.collect {
-                        when (it) {
-                            is AuthorizeContract.Effect.AuthorizeSuccess -> {
-                                startActivity(
-                                    Intent(
-                                        this@AuthorizeActivity,
-                                        MainActivity::class.java,
-                                    ),
-                                )
-                            }
-
-                            is AuthorizeContract.Effect.ShowToast -> {
-                                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-                }
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AuthorizeScreen(
-                        modifier = Modifier.padding(innerPadding),
-                        event,
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize(),
                     )
                 }
             }
@@ -69,8 +51,28 @@ class AuthorizeActivity : ComponentActivity() {
 @Composable
 fun AuthorizeScreen(
     modifier: Modifier,
-    event: (AuthorizeContract.Event) -> Unit,
+    viewModel: AuthorizeViewModel = koinViewModel(),
 ) {
+    val (state, event, effect) = use(viewModel = viewModel)
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        effect.collectLatest {
+            when (it) {
+                AuthorizeContract.Effect.AuthorizeSuccess -> {
+                    context.startActivity(
+                        Intent(
+                            context,
+                            MainActivity::class.java,
+                        ),
+                    )
+                }
+
+                is AuthorizeContract.Effect.ShowToast -> {
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -104,7 +106,7 @@ fun AuthorizeScreen(
 
 fun authorizeUrl(): String =
     "https://unsplash.com/oauth/authorize" +
-        "?client_id=" + ACCESS_KEY +
-        "&redirect_uri=" + REDIRECT_URI +
-        "&response_type=" + RESPONSE_TYPE +
-        "&scope=" + SCOPE
+            "?client_id=" + ACCESS_KEY +
+            "&redirect_uri=" + REDIRECT_URI +
+            "&response_type=" + RESPONSE_TYPE +
+            "&scope=" + SCOPE

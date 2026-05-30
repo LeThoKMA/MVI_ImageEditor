@@ -6,8 +6,10 @@ import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import com.example.mviimageeditor.module.dataModule
 import com.example.mviimageeditor.module.databaseModule
+import com.example.mviimageeditor.module.dispatcherModule
 import com.example.mviimageeditor.module.networkModule
 import com.example.mviimageeditor.module.viewModelModule
+import com.google.android.filament.utils.Utils
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -22,9 +24,14 @@ class App :
         startKoin {
             androidLogger()
             androidContext(this@App)
-            modules(databaseModule, networkModule, dataModule, viewModelModule)
+            modules(
+                databaseModule,
+                networkModule,
+                dataModule,
+                viewModelModule,
+                dispatcherModule,
+            )
         }
-        GlideModule()
         ImageLoader
             .Builder(this)
             .memoryCache {
@@ -43,5 +50,7 @@ class App :
                     ).maxSizePercent(0.25)
                     .build()
             }.build()
+        //Filament
+        Utils.init()
     }
 }

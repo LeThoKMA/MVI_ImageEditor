@@ -5,29 +5,20 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.example.mviimageeditor.BaseViewModel
-import com.example.mviimageeditor.ContractViewModel
 import com.example.mviimageeditor.model.CollectionModel
 import com.example.mviimageeditor.repository.home.HomeRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HomeViewModel constructor(
     private val homeRepository: HomeRepository,
-) : BaseViewModel(),
-    ContractViewModel<HomeContract.State, HomeContract.Event, HomeContract.Effect> {
-    private val _state = MutableStateFlow(HomeContract.State())
-    override val state: StateFlow<HomeContract.State>
-        get() = _state.asStateFlow()
-    private val _effect = MutableSharedFlow<HomeContract.Effect>()
-    override val effect: SharedFlow<HomeContract.Effect>
-        get() = _effect.asSharedFlow()
+) : BaseViewModel<HomeContract.State, HomeContract.Event, HomeContract.Effect>() {
+    override val _state: MutableStateFlow<HomeContract.State> =
+        MutableStateFlow(HomeContract.State())
+    override val _effect: MutableSharedFlow<HomeContract.Effect> = MutableSharedFlow()
 
     private val _pagingDataFlow: MutableStateFlow<PagingData<CollectionModel>> =
         MutableStateFlow(PagingData.empty())
@@ -42,7 +33,6 @@ class HomeViewModel constructor(
             homeRepository
                 .getCollections()
                 .cachedIn(viewModelScope)
-                .catch { handleApiError(it) }
                 .collect {
                     _pagingDataFlow.value = it
                 }
@@ -67,7 +57,7 @@ class HomeViewModel constructor(
         }
     }
 
-    override fun event(event: HomeContract.Event) {
+    override fun handleEvent(event: HomeContract.Event) {
         when (event) {
             is HomeContract.Event.OnLoadMore -> {
                 _state.update {

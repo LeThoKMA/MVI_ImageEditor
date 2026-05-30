@@ -3,12 +3,14 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrainsKotlinSerialization)
     alias(libs.plugins.compose.compiler)
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.koin.compiler)
+    alias(libs.plugins.ktlint)
 }
 
 android {
     namespace = "com.example.mviimageeditor"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.mviimageeditor"
@@ -36,14 +38,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
+        viewBinding = true
     }
     packaging {
         resources {
@@ -66,6 +63,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.material)
     implementation(libs.androidx.palette.ktx)
+    implementation(libs.assets)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -79,10 +77,16 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.koin.android)
     implementation(libs.koin.annotations)
-    implementation(libs.koin.ksp.compiler)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.glide)
+    ksp(libs.glide.compiler)
     implementation(libs.compose)
     implementation(libs.androidx.constraintlayout.compose)
+    // compose ui
+    implementation(libs.ui)
+
+    implementation(libs.androidx.ui.viewbinding)
+    implementation(libs.androidx.fragment.compose)
 
     // paging3
     implementation(libs.androidx.paging.runtime.ktx)
@@ -103,4 +107,48 @@ dependencies {
 
     // Leak-canary
     debugImplementation(libs.squareup.leakcanary.android)
+
+    // The following line is optional, as the core library is included indirectly by camera-camera2
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    // If you want to additionally use the CameraX Lifecycle library
+    implementation(libs.androidx.camera.lifecycle)
+    // If you want to additionally use the CameraX VideoCapture library
+    implementation(libs.androidx.camera.video)
+    // If you want to additionally use the CameraX View class
+    implementation(libs.androidx.camera.view)
+    // If you want to additionally add CameraX ML Kit Vision Integration
+    implementation(libs.androidx.camera.mlkit.vision)
+    // If you want to additionally use the CameraX Extensions library
+    implementation(libs.androidx.camera.extensions)
+
+    // ViewFinder - Compose
+    implementation(libs.androidx.camera.viewfinder.compose)
+
+    implementation(libs.androidx.viewfinder.view)
+    implementation(libs.androidx.viewfinder.core)
+    implementation(libs.androidx.camera.compose)
+
+    // ML kit
+    implementation(libs.face.detection)
+
+    // ArCore
+    implementation(libs.core)
+
+    // Filament
+    implementation(libs.filament.android)
+    implementation(libs.gltfio.android) // Hỗ trợ GLB / GLTF
+    implementation(libs.filament.utils.android)
+    implementation(libs.androidx.material.icons.extended)
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    }
 }

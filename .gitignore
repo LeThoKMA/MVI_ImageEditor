@@ -7,9 +7,15 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/misc.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+/.idea/runConfigurations.xml
+/.kotlin/errors
+/.idea/graphql-settings.xml
+/.idea/material_theme_project_new.xml
+/.idea/AndroidProjectSystem.xml

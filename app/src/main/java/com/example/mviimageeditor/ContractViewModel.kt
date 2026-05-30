@@ -13,17 +13,17 @@ interface ContractViewModel<STATE, EVENT, EFFECT> {
     fun event(event: EVENT)
 }
 
-@Composable
-inline fun <reified STATE, EVENT, EFFECT> use(
-    viewModel: ContractViewModel<STATE, EVENT, EFFECT>,
-): StateDispatchEffect<STATE, EVENT, EFFECT> {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val dispatch = { event: EVENT -> viewModel.event(event) }
-    return StateDispatchEffect(state, dispatch, viewModel.effect)
-}
-
 data class StateDispatchEffect<STATE, EVENT, EFFECT>(
     val state: STATE,
     val dispatch: (EVENT) -> Unit,
     val effectFlow: SharedFlow<EFFECT>,
 )
+
+@Composable
+inline fun <reified STATE, EVENT, EFFECT> use(
+    viewModel: BaseViewModel<STATE, EVENT, EFFECT>,
+): StateDispatchEffect<STATE, EVENT, EFFECT> {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val dispatch = { event: EVENT -> viewModel.handleEvent(event) }
+    return StateDispatchEffect(state, dispatch, viewModel.effect)
+}

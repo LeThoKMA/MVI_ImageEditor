@@ -1,5 +1,7 @@
 package com.example.mviimageeditor.utils
 
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import androidx.compose.foundation.lazy.LazyListState
 
 internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
@@ -7,6 +9,15 @@ internal fun LazyListState.reachedBottom(buffer: Int = 1): Boolean {
     return lastVisibleItem?.index != 0 && lastVisibleItem?.index == this.layoutInfo.totalItemsCount - buffer
 }
 
-fun String.toAuthorizationCode(): String {
-    return this.substring(this.indexOf('=') + 1)
+fun String.toAuthorizationCode(): String = this.substring(this.indexOf('=') + 1)
+
+fun Bitmap.rotate(degrees: Float): Bitmap {
+    if (degrees == 0f) return this
+
+    val matrix =
+        Matrix().apply {
+            postRotate(degrees)
+        }
+
+    return Bitmap.createBitmap(this, 0, 0, width, height, matrix, true)
 }

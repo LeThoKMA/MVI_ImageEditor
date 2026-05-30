@@ -9,6 +9,7 @@ import com.example.mviimageeditor.repository.authorize.AuthorizeRepository
 import com.example.mviimageeditor.utils.ACCESS_KEY
 import com.example.mviimageeditor.utils.REDIRECT_URI
 import com.example.mviimageeditor.utils.SECRET_KEY
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -23,11 +24,11 @@ import kotlinx.coroutines.launch
 class AuthorizeViewModel(
     private val authorizeRepository: AuthorizeRepository,
     private val myPreference: MyPreference,
-) : BaseViewModel(),
-    ContractViewModel<AuthorizeContract.State, AuthorizeContract.Event, AuthorizeContract.Effect> {
-    private val _state = MutableStateFlow(AuthorizeContract.State())
+) : BaseViewModel<AuthorizeContract.State, AuthorizeContract.Event, AuthorizeContract.Effect>() {
 
-    private val _effectFlow = MutableSharedFlow<AuthorizeContract.Effect>()
+    override val _state: MutableStateFlow<AuthorizeContract.State> = MutableStateFlow(AuthorizeContract.State())
+
+    override val _effect: MutableSharedFlow<AuthorizeContract.Effect> = MutableSharedFlow<AuthorizeContract.Effect>()
 
     private fun authorize(authorizationCode: String) {
         viewModelScope.launch {
@@ -40,24 +41,19 @@ class AuthorizeViewModel(
                 )
             authorizeRepository
                 .authorize(authorizeRequest)
-                .onStart { showLoading() }
-                .catch { handleApiError(it) }
-                .onCompletion { hideLoading() }
+//                .onStart { showLoading() }
+                .catch {}
+//                .onCompletion { hideLoading() }
                 .collect { data ->
                     myPreference.saveToken(data.accessToken)
-                    _effectFlow.emit(AuthorizeContract.Effect.AuthorizeSuccess)
+                    _effect.emit(AuthorizeContract.Effect.AuthorizeSuccess)
                 }
         }
     }
 
-    override fun event(event: AuthorizeContract.Event) {
+    override fun handleEvent(event: AuthorizeContract.Event) {
         when (event) {
             is AuthorizeContract.Event.OnAuthorize -> authorize(event.authorizationCode)
         }
     }
-
-    override val state: StateFlow<AuthorizeContract.State>
-        get() = _state.asStateFlow()
-    override val effect: SharedFlow<AuthorizeContract.Effect>
-        get() = _effectFlow.asSharedFlow()
 }
