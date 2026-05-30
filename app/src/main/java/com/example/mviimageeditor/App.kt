@@ -32,7 +32,6 @@ class App :
                 dispatcherModule,
             )
         }
-        GlideModule()
         ImageLoader
             .Builder(this)
             .memoryCache {

@@ -151,8 +151,9 @@ class FilamentOverlayView @JvmOverloads constructor(
             iblAsset.read(iblBuffer)
             iblAsset.close()
 
-            val indirectLight = KTX1Loader.createIndirectLight(engine, ByteBuffer.wrap(iblBuffer))
-            indirectLight.intensity = 30000.0f
+            val indirectLightBundle = KTX1Loader.createIndirectLight(engine, ByteBuffer.wrap(iblBuffer))
+            val indirectLight = indirectLightBundle.indirectLight
+            indirectLight?.intensity = 30000.0f
             scene.indirectLight = indirectLight
         } catch (e: Exception) {
             android.util.Log.w("FilamentOverlay", "Could not load IBL, using default lighting")

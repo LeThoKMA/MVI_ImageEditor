@@ -1,4 +1,4 @@
-package com.example.imageEditor2.utils
+package com.example.mviimageeditor.utils
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable

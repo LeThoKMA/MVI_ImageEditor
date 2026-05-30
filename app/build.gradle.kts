@@ -3,8 +3,9 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrainsKotlinSerialization)
     alias(libs.plugins.compose.compiler)
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
-    id("org.jlleitschuh.gradle.ktlint") version "11.1.0"
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.koin.compiler)
+    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -37,15 +38,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     buildFeatures {
         compose = true
         viewBinding = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
     }
     packaging {
         resources {
@@ -82,8 +77,9 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.koin.android)
     implementation(libs.koin.annotations)
-    implementation(libs.koin.ksp.compiler)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.glide)
+    ksp(libs.glide.compiler)
     implementation(libs.compose)
     implementation(libs.androidx.constraintlayout.compose)
     // compose ui
@@ -91,8 +87,6 @@ dependencies {
 
     implementation(libs.androidx.ui.viewbinding)
     implementation(libs.androidx.fragment.compose)
-
-    ktlintRuleset(libs.ktlint)
 
     // paging3
     implementation(libs.androidx.paging.runtime.ktx)
@@ -150,5 +144,11 @@ dependencies {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
     }
 }
